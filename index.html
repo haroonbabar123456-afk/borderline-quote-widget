@@ -883,7 +883,7 @@ function updateQuote() {
   let laborSum = 0;
   let hasSourceQuote = false;
   itemsEl.innerHTML = '';
-  selectedServices.forEach(s => {
+  selectedServices.forEach((s, idx) => {
     laborSum += s.labor||0;
     if(s.parts && s.parts!=='N/A') hasSourceQuote = true;
     const div = document.createElement('div');
