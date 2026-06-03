@@ -888,17 +888,22 @@ function updateQuote() {
     if(s.parts && s.parts!=='N/A') hasSourceQuote = true;
     const div = document.createElement('div');
     div.className = 'quote-item';
+    // Use data-idx attribute to avoid closure/string issues
     div.innerHTML = `
       <span class="qi-name">${s.task}</span>
       <span class="qi-price">$${s.labor}</span>
-      <span class="qi-remove">✕</span>`;
-    // Use index-based removal to avoid special character issues in task names
-    div.querySelector('.qi-remove').addEventListener('click', ((index) => () => {
+      <span class="qi-remove" data-idx="${idx}">✕</span>`;
+    itemsEl.appendChild(div);
+  });
+
+  // Attach remove listeners after all items are in DOM
+  itemsEl.querySelectorAll('.qi-remove').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const index = parseInt(this.getAttribute('data-idx'));
       selectedServices.splice(index, 1);
       buildCategories();
       updateQuote();
-    })(idx));
-    itemsEl.appendChild(div);
+    });
   });
 
   const mobileFee = mobileActive ? 50 : 0;
