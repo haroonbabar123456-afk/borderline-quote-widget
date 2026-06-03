@@ -891,7 +891,13 @@ function updateQuote() {
     div.innerHTML = `
       <span class="qi-name">${s.task}</span>
       <span class="qi-price">$${s.labor}</span>
-      <span class="qi-remove" onclick="removeService('${s.task.replace(/'/g,"\\'")}')">✕</span>`;
+      <span class="qi-remove">✕</span>`;
+    // Use index-based removal to avoid special character issues in task names
+    div.querySelector('.qi-remove').addEventListener('click', ((index) => () => {
+      selectedServices.splice(index, 1);
+      buildCategories();
+      updateQuote();
+    })(idx));
     itemsEl.appendChild(div);
   });
 
@@ -904,6 +910,12 @@ function updateQuote() {
   document.getElementById('mobileSurcharge').style.display = 'flex';
   document.getElementById('partsRow').style.display = hasSourceQuote ? 'flex' : 'none';
   document.getElementById('partsNote').style.display = hasSourceQuote ? 'block' : 'none';
+}
+
+function removeServiceByIndex(idx) {
+  selectedServices.splice(idx, 1);
+  buildCategories();
+  updateQuote();
 }
 
 function removeService(task) {
@@ -1054,4 +1066,3 @@ loadAllData();
 </script>
 </body>
 </html>
-
