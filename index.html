@@ -738,7 +738,7 @@ function buildBikeGrid() {
 }
 
 // ── SELECT BIKE ──────────────────────────────────────────────────────────────
-function selectBike(bike) {
+async function selectBike(bike) {
   selectedBike = bike;
   selectedServices = [];
   openCategories.clear();
@@ -755,6 +755,26 @@ function selectBike(bike) {
   document.getElementById('quoteBikeIcon').textContent = BIKE_ICONS[bike]||'🚲';
   document.getElementById('quoteBikeName').textContent = bike;
   document.getElementById('quoteBikeBadge').style.display = 'inline-flex';
+
+  // Show loading state in categories
+  document.getElementById('categoriesArea').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      Fetching latest services...
+    </div>`;
+
+  // Re-fetch live data for this bike type from Google Sheets
+  try {
+    const freshRows = await fetchSheetTab(bike);
+    if (freshRows.length > 0) {
+      allData[bike] = freshRows;
+      // Update service count on the bike button
+      const btn = document.querySelector(`.bike-btn[data-bike="${bike}"] .bike-count`);
+      if (btn) btn.textContent = `${freshRows.length} services`;
+    }
+  } catch(e) {
+    // silently fall back to cached data
+  }
 
   buildCategories();
   updateQuote();
