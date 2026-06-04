@@ -659,26 +659,10 @@
         <!-- populated by JS -->
       </div>
     </div>
-
-    <!-- STEP 2: SERVICE TYPE -->
-    <div class="step step-disabled" id="step2">
-      <div class="step-header">
-        <div class="step-num inactive" id="step2num">2</div>
-        <div>
-          <div class="step-title">Service Location</div>
-          <div class="step-sub">Where will the service be performed?</div>
-        </div>
-      </div>
-      <div class="service-toggle">
-        <button class="toggle-btn active" id="toggleShop" onclick="setServiceType('shop')">🏪 In Shop</button>
-        <button class="toggle-btn" id="toggleMobile" onclick="setServiceType('mobile')">🚐 Mobile (+$50)</button>
-      </div>
-    </div>
-
     <!-- STEP 3: SERVICES -->
     <div class="step step-disabled" id="step3">
       <div class="step-header">
-        <div class="step-num inactive" id="step3num">3</div>
+        <div class="step-num inactive" id="step3num">2</div>
         <div>
           <div class="step-title">Select Services</div>
           <div class="step-sub">Choose one or more services — quote updates live</div>
@@ -697,7 +681,7 @@
   <!-- RIGHT: QUOTE PANEL -->
   <div class="right-panel">
     <div class="quote-title">Your Quote</div>
-    <div class="quote-sub">Real-time estimate — final quote may vary for parts</div>
+    <div class="quote-sub">Mobile service included — final quote may vary for parts</div>
 
     <div id="quoteBikeBadge" style="display:none" class="quote-bike-badge">
       <span id="quoteBikeIcon"></span>
@@ -711,11 +695,7 @@
 
     <div id="quoteContent" style="display:none; flex:1; display:none; flex-direction:column;">
       <div class="quote-items" id="quoteItems"></div>
-
-      <div class="mobile-toggle" id="mobileSurcharge" onclick="toggleMobile()" style="display:none">
-        <div class="mt-left">
-          <div class="mt-icon">🚐</div>
-          <div class="mt-info">
+      <div class="mt-info">
             <h4>Mobile Service</h4>
             <p>We come to you — $50 surcharge</p>
           </div>
@@ -732,7 +712,7 @@
           <span class="br-label">Parts (quoted separately)</span>
           <span class="br-val" style="color:var(--muted)">*See note</span>
         </div>
-        <div class="breakdown-row" id="mobileRow" style="display:none">
+        <div class="breakdown-row">
           <span class="br-label">Mobile service charge</span>
           <span class="br-val">$50.00</span>
         </div>
@@ -768,7 +748,7 @@ let allData = {};          // { bikeName: [ {category, task, labor, parts, mobil
 let selectedBike = null;
 let serviceType = 'shop';
 let selectedServices = [];
-let mobileActive = false;
+let mobileActive = true;
 let openCategories = new Set();
 
 // ── FETCH FROM GOOGLE SHEETS ─────────────────────────────────────────────────
@@ -956,9 +936,9 @@ async function selectBike(bike) {
   document.querySelectorAll('.bike-btn').forEach(b => b.classList.toggle('selected', b.dataset.bike === bike));
 
   // Unlock steps
-  document.getElementById('step2').classList.remove('step-disabled');
+  
   document.getElementById('step3').classList.remove('step-disabled');
-  document.getElementById('step2num').className = 'step-num';
+  
   document.getElementById('step3num').className = 'step-num';
 
   // Update quote badge
@@ -991,27 +971,7 @@ async function selectBike(bike) {
 }
 
 // ── SERVICE TYPE ─────────────────────────────────────────────────────────────
-function setServiceType(type) {
-  serviceType = type;
-  mobileActive = (type === 'mobile');
-  // Sync Step 2 toggle
-  document.getElementById('toggleShop').classList.toggle('active', type==='shop');
-  document.getElementById('toggleMobile').classList.toggle('active', type==='mobile');
-  // Sync quote panel switch
-  document.getElementById('mobileSurcharge').classList.toggle('active', mobileActive);
-  updateQuote();
-}
 
-function toggleMobile() {
-  mobileActive = !mobileActive;
-  serviceType = mobileActive ? 'mobile' : 'shop';
-  // Sync quote panel switch
-  document.getElementById('mobileSurcharge').classList.toggle('active', mobileActive);
-  // Sync Step 2 toggle
-  document.getElementById('toggleShop').classList.toggle('active', !mobileActive);
-  document.getElementById('toggleMobile').classList.toggle('active', mobileActive);
-  updateQuote();
-}
 
 // ── BUILD CATEGORIES ─────────────────────────────────────────────────────────
 function buildCategories() {
@@ -1121,8 +1081,8 @@ function updateQuote() {
 
   document.getElementById('laborTotal').textContent = `$${laborSum.toFixed(2)}`;
   document.getElementById('grandTotal').textContent = `$${grand.toFixed(2)}`;
-  document.getElementById('mobileRow').style.display = mobileActive ? 'flex' : 'none';
-  document.getElementById('mobileSurcharge').style.display = 'flex';
+  
+  
   document.getElementById('partsRow').style.display = hasSourceQuote ? 'flex' : 'none';
   document.getElementById('partsNote').style.display = hasSourceQuote ? 'block' : 'none';
 }
@@ -1195,7 +1155,7 @@ function requestQuote() {
           <div class="qm-section-title">Service Quote</div>
           <div class="qm-badges">
             <span class="qm-badge bike">${BIKE_ICONS[selectedBike]||'🚲'} ${selectedBike}</span>
-            <span class="qm-badge type">${serviceType==='mobile'?'🚐 Mobile Service':'🏪 In Shop'}</span>
+            <span class="qm-badge type">🚐 Mobile Service</span>
           </div>
 
           <table class="qm-table">
@@ -1216,10 +1176,10 @@ function requestQuote() {
               <span>Labor Subtotal</span>
               <span>$${laborSum.toFixed(2)}</span>
             </div>
-            ${mobileFee>0?`<div class="qm-total-row">
+            <div class="qm-total-row">
               <span>Mobile Service Charge</span>
               <span>$${mobileFee.toFixed(2)}</span>
-            </div>`:''}
+            </div>
             ${hasSourceQuote?`<div class="qm-total-row parts-note">
               <span>Parts</span>
               <span>Quoted separately</span>
