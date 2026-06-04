@@ -156,7 +156,7 @@
   .step-sub { font-size:12px; color:var(--muted); margin-top:2px; }
 
   /* ── BIKE TYPE GRID ── */
-  .bike-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .bike-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
   .bike-btn {
     background: var(--card);
     border: 1.5px solid var(--border);
@@ -730,10 +730,11 @@
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 const SHEET_ID = '1xsZb1EW2xxsqJqO38siPI9FrXjA3oJLn7i8CKE7gqNg';
-const BIKE_TYPES = ['Hybrid','Cruiser','Fixie','Mountain','Road','Gravel','Trike','E-Bike','E-Trike'];
+const BIKE_TYPES = ['Kids/Youth','BMX','Beach Cruiser','Mountain','Hybrid','Fixie','Road','Gravel','Cargo','Trike','E-Bike','E-Trike'];
 const BIKE_ICONS = {
-  'Hybrid':'🚲','Cruiser':'🏖️','Fixie':'⚡','Mountain':'⛰️',
-  'Road':'🏁','Gravel':'🪨','Trike':'🛺','E-Bike':'⚡🚲','E-Trike':'⚡🛺'
+  'Kids/Youth':'🧒','BMX':'🤸','Beach Cruiser':'🏖️','Mountain':'⛰️',
+  'Hybrid':'🚲','Fixie':'⚡','Road':'🏁','Gravel':'🪨',
+  'Cargo':'📦','Trike':'🛺','E-Bike':'⚡🚲','E-Trike':'⚡🛺'
 };
 
 // ── STATE ────────────────────────────────────────────────────────────────────
@@ -802,14 +803,14 @@ function loadFallbackData() {
     {cat:"Bike Assembly",task:"Unbox and build adults E-bike with controls 16\"-29\" (Electric)",labor:160,parts:"N/A",bikes:["E-Bike"]},
     {cat:"Bike Assembly",task:"Unbox and build adults acoustic cargo bike with controls 16\"-29\" (Standard)",labor:170,parts:"N/A",bikes:["Hybrid","Cruiser"]},
     {cat:"Bike Assembly",task:"Unbox and build adults E-cargo bike with controls 16\"-29\" (Electric)",labor:190,parts:"N/A",bikes:["E-Bike"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike without controls (Standard)",labor:260,parts:"N/A",bikes:["Trike"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike with controls (Standard)",labor:300,parts:"N/A",bikes:["Trike"]},
+    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike without controls (Standard)",labor:260,parts:"N/A",bikes:["Trike","Cargo"]},
+    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike with controls (Standard)",labor:300,parts:"N/A",bikes:["Trike","Cargo"]},
     {cat:"Bike Assembly",task:"Unbox and build adults E-trike with controls (Electric)",labor:340,parts:"N/A",bikes:["E-Trike"]},
     {cat:"Tuneup",task:"Basic tuneup on kids acoustic bike without controls 8\"-16\" (Standard)",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser"]},
     {cat:"Tuneup",task:"Basic tuneup on kids E-bike without controls 8\"-16\" (Electric)",labor:80,parts:"source/quote",bikes:["E-Bike"]},
     {cat:"Tuneup",task:"Basic tuneup on adults acoustic bike with controls 16\"-29\" (Standard)",labor:120,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
     {cat:"Tuneup",task:"Basic tuneup on adults E-bike with controls 16\"-29\" (Electric)",labor:140,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Tuneup",task:"Basic tuneup on adults acoustic trike without controls (Standard)",labor:180,parts:"source/quote",bikes:["Trike"]},
+    {cat:"Tuneup",task:"Basic tuneup on adults acoustic trike without controls (Standard)",labor:180,parts:"source/quote",bikes:["Trike","Cargo"]},
     {cat:"Tuneup",task:"Basic tuneup on adults E-trike with controls (Electric)",labor:260,parts:"source/quote",bikes:["E-Trike"]},
     {cat:"Bike Return",task:"Box and Ship original box/packing material, Item was fully assembled (Standard)",labor:110,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
     {cat:"Bike Return",task:"Box and Ship original box/packing material, Item was fully assembled (Electric)",labor:140,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
