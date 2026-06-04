@@ -997,16 +997,9 @@ async function selectBike(bike) {
   document.getElementById('step3num').className = 'step-num';
 
   // Update quote badge
-  document.getElementById('quoteBikeIcon').textContent = BIKE_ICONS[bike]||'🚲';
+  document.getElementById('quoteBikeIcon').textContent = getIcon(bike);
   document.getElementById('quoteBikeName').textContent = bike;
   document.getElementById('quoteBikeBadge').style.display = 'inline-flex';
-
-  // Show loading state in categories
-  document.getElementById('categoriesArea').innerHTML = `
-    <div class="loading-state">
-      <div class="spinner"></div>
-      Fetching latest services...
-    </div>`;
 
   // Re-fetch live data for this bike type from Google Sheets
   try {
@@ -1040,6 +1033,12 @@ function buildCategories() {
   });
 
   area.innerHTML = '';
+
+  if (services.length === 0) {
+    area.innerHTML = `<div class="loading-state" style="color:var(--muted)">No services found for this bike type.</div>`;
+    return;
+  }
+
   Object.entries(grouped).forEach(([cat, items]) => {
     const block = document.createElement('div');
     block.className = 'category-block';
