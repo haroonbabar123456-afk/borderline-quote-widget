@@ -730,42 +730,12 @@
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 const SHEET_ID = '1xsZb1EW2xxsqJqO38siPI9FrXjA3oJLn7i8CKE7gqNg';
-const MASTER_TAB = 'Master List'; // First tab — always skipped
-
-// ── ICON KEYWORD MAP ─────────────────────────────────────────────────────────
-// Partial, case-insensitive matching — add keywords as needed
-const ICON_MAP = [
-  { keywords: ['kids','youth','junior','children','balance','mini'],    icon: '🧒' },
-  { keywords: ['bmx','stunt','dirt','jump','trick'],                    icon: '🤸' },
-  { keywords: ['beach','cruiser'],                                      icon: '🏖️' },
-  { keywords: ['mountain','mtb','enduro','downhill','trail'],           icon: '⛰️' },
-  { keywords: ['road','racing','race'],                                 icon: '🏁' },
-  { keywords: ['gravel','adventure','bikepacking'],                     icon: '🪨' },
-  { keywords: ['cargo','utility','longtail','freight'],                 icon: '📦' },
-  { keywords: ['e-trike','etrike','electric trike'],                    icon: '⚡🛺' },
-  { keywords: ['e-bike','ebike','electric bike','electric'],            icon: '⚡🚲' },
-  { keywords: ['trike','tricycle','three wheel'],                       icon: '🛺' },
-  { keywords: ['fixie','fixed','single speed'],                         icon: '⚡' },
-  { keywords: ['hybrid'],                                               icon: '🚲' },
-  { keywords: ['folding','fold','compact'],                             icon: '📁' },
-  { keywords: ['fat','plus','wide','snow'],                             icon: '🏔️' },
-  { keywords: ['city','urban','commuter','dutch'],                      icon: '🏙️' },
-  { keywords: ['touring','tour','travel','randonneur'],                 icon: '🗺️' },
-  { keywords: ['tandem','double','couples'],                            icon: '👫' },
-  { keywords: ['recumbent','laid','lowrider'],                          icon: '🛋️' },
-];
-
-// ── GET ICON FROM TAB NAME ────────────────────────────────────────────────────
-function getIcon(tabName) {
-  const name = tabName.toLowerCase();
-  for (const entry of ICON_MAP) {
-    if (entry.keywords.some(k => name.includes(k))) return entry.icon;
-  }
-  return '🚲'; // default fallback
-}
-
-// Dynamic bike types — populated from Google Sheet tabs at runtime
-let BIKE_TYPES = [];
+const BIKE_TYPES = ['Kids/Youth','BMX','Beach Cruiser','Mountain','Hybrid','Fixie','Road','Gravel','Cargo','Trike','E-Bike','E-Trike'];
+const BIKE_ICONS = {
+  'Kids/Youth':'🧒','BMX':'🤸','Beach Cruiser':'🏖️','Mountain':'⛰️',
+  'Hybrid':'🚲','Fixie':'⚡','Road':'🏁','Gravel':'🪨',
+  'Cargo':'📦','Trike':'🛺','E-Bike':'⚡🚲','E-Trike':'⚡🛺'
+};
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let allData = {};          // { bikeName: [ {category, task, labor, parts, mobile} ] }
@@ -806,39 +776,15 @@ async function fetchSheetTab(tabName) {
   return dataRows;
 }
 
-// ── FETCH TAB NAMES FROM GOOGLE SHEET ────────────────────────────────────────
-async function fetchTabNames() {
-  // Use gviz to fetch the Master List and extract sheet names from the URL trick
-  // Google Sheets exposes sheet metadata via the spreadsheet feed
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}&tq=SELECT%20A%20LIMIT%200`;
-  // Instead use the HTML export which lists all sheet names
-  // Best approach: fetch spreadsheet as JSON using the sheets API public endpoint
-  const feedUrl = `https://spreadsheets.google.com/feeds/worksheets/${SHEET_ID}/public/basic?alt=json`;
-  const res = await fetch(feedUrl);
-  const json = await res.json();
-  const entries = json.feed.entry;
-  // First tab is Master List — skip it, rest are bike types
-  const tabs = entries
-    .map(e => e.title.$t)
-    .filter(name => name !== MASTER_TAB && name.trim() !== '');
-  return tabs;
-}
-
 async function loadAllData() {
   document.getElementById('dataStatus').textContent = 'Loading live data...';
   try {
-    // Step 1: fetch tab names dynamically
-    const tabs = await fetchTabNames();
-    BIKE_TYPES = tabs;
-
-    // Step 2: fetch each bike tab's data in parallel
     const promises = BIKE_TYPES.map(b => fetchSheetTab(b).then(rows => ({bike:b, rows})));
     const results = await Promise.all(promises);
     results.forEach(({bike,rows}) => { allData[bike] = rows; });
     document.getElementById('dataStatus').textContent = 'Live data loaded ✓';
     buildBikeGrid();
   } catch(e) {
-    console.warn('Dynamic tab fetch failed, using fallback:', e);
     document.getElementById('dataStatus').textContent = 'Using offline data';
     loadFallbackData();
     buildBikeGrid();
@@ -847,8 +793,6 @@ async function loadAllData() {
 
 // ── FALLBACK DATA (from uploaded Excel) ──────────────────────────────────────
 function loadFallbackData() {
-  // Set fallback bike types if dynamic fetch failed
-  BIKE_TYPES = ['Kids/Youth','BMX','Beach Cruiser','Mountain','Hybrid','Fixie','Road','Gravel','Cargo','Trike','E-Bike','E-Trike'];
   // Embedded snapshot of master data mapped per bike type
   const master = [
     {cat:"Warranty Evaluation",task:"Review fault and advise",labor:60,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
@@ -969,7 +913,7 @@ function buildBikeGrid() {
     btn.className = 'bike-btn';
     btn.dataset.bike = bike;
     btn.innerHTML = `
-      <div class="bike-icon">${getIcon(bike)}</div>
+      <div class="bike-icon">${BIKE_ICONS[bike]||'🚲'}</div>
       <div class="bike-label">${bike}</div>
       <div class="bike-count">${count} services</div>`;
     btn.onclick = () => selectBike(bike);
