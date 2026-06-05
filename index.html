@@ -175,8 +175,7 @@
     position:absolute; top:6px; right:8px;
     font-size:12px; color:var(--orange); font-weight:700;
   }
-  .bike-icon { display:flex; align-items:center; justify-content:center; width:48px; height:48px; margin:0 auto 6px auto; color:var(--orange); overflow:hidden; }
-  .bike-icon svg { width:48px !important; height:48px !important; flex-shrink:0; }
+  .bike-icon { font-size:28px; margin-bottom:6px; }
   .bike-label { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--white); }
   .bike-count { font-size:11px; color:var(--muted); margin-top:2px; }
 
@@ -745,50 +744,36 @@
 
 <script>
 
-// ── SVG BIKE ICONS ────────────────────────────────────────────────────────────
-const SVG_ICONS = {
-  kids_youth: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="33" r="7"/><circle cx="34" cy="33" r="7"/><circle cx="8" cy="37" r="3"/><circle cx="40" cy="37" r="3"/><path d="M14 33 L20 18 L28 18 L34 33"/><path d="M20 18 L24 26 L34 33"/><path d="M18 18 L26 18"/><circle cx="20" cy="14" r="3"/></svg>`,
-  bmx: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="34" cy="34" r="8"/><circle cx="12" cy="22" r="6"/><path d="M34 34 L26 20 L18 16 L12 22"/><path d="M26 20 L30 34"/><path d="M22 16 L28 16"/><circle cx="22" cy="13" r="3"/></svg>`,
-  beach_cruiser: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="34" r="8"/><circle cx="36" cy="34" r="8"/><path d="M12 34 L20 20 L30 20 L36 34"/><path d="M20 20 L24 28 L36 34"/><path d="M28 20 C30 16 36 14 38 16"/><path d="M18 20 L26 20"/><circle cx="20" cy="16" r="3"/></svg>`,
-  mountain: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="34" r="8"/><circle cx="36" cy="34" r="8"/><path d="M12 34 L20 18 L30 18 L36 34"/><path d="M20 18 L24 28 L36 34"/><path d="M30 18 L34 14 L36 16"/><path d="M17 18 L25 18"/><circle cx="19" cy="14" r="3"/><line x1="10" y1="26" x2="10" y2="30"/><line x1="14" y1="26" x2="14" y2="30"/></svg>`,
-  hybrid: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="34" r="8"/><circle cx="36" cy="34" r="8"/><path d="M12 34 L20 20 L30 20 L36 34"/><path d="M20 20 L24 28 L36 34"/><path d="M30 20 L32 16 L36 16"/><path d="M18 20 L26 20"/><circle cx="20" cy="16" r="3"/></svg>`,
-  fixie: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="34" r="8"/><circle cx="36" cy="34" r="8"/><path d="M12 34 L22 18 L30 18 L36 34"/><path d="M22 18 L24 28 L36 34"/><path d="M30 18 L32 14"/><path d="M30 14 L34 14"/><path d="M20 18 L27 18"/><circle cx="22" cy="14" r="3"/><circle cx="24" cy="28" r="3"/></svg>`,
-  road: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="34" r="7"/><circle cx="37" cy="34" r="7"/><path d="M11 34 L21 17 L31 17 L37 34"/><path d="M21 17 L24 27 L37 34"/><path d="M31 17 C34 15 36 13 34 12 C32 11 30 13 31 17"/><path d="M19 17 L27 17"/><circle cx="21" cy="13" r="3"/></svg>`,
-  gravel: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="34" r="8"/><circle cx="36" cy="34" r="8"/><circle cx="12" cy="34" r="5"/><circle cx="36" cy="34" r="5"/><path d="M12 34 L21 18 L31 18 L36 34"/><path d="M21 18 L24 27 L36 34"/><path d="M31 18 C33 14 36 13 37 15"/><path d="M19 18 L27 18"/><circle cx="21" cy="14" r="3"/></svg>`,
-  cargo: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="38" cy="34" r="7"/><circle cx="14" cy="34" r="6"/><path d="M14 34 L20 22 L32 22 L38 34"/><path d="M20 22 L24 29 L38 34"/><rect x="4" y="22" width="16" height="10" rx="2"/><path d="M8 22 L8 32"/><path d="M12 22 L12 32"/><circle cx="22" cy="18" r="3"/></svg>`,
-  trike: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="14" r="7"/><circle cx="8" cy="36" r="6"/><circle cx="40" cy="36" r="6"/><path d="M24 21 L24 30"/><path d="M24 30 L8 36"/><path d="M24 30 L40 36"/><path d="M8 36 L40 36"/><path d="M20 14 L28 14"/><path d="M22 8 L26 8"/></svg>`,
-  ebike: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="34" r="8"/><circle cx="36" cy="34" r="8"/><path d="M12 34 L20 20 L30 20 L36 34"/><path d="M20 20 L24 28 L36 34"/><path d="M30 20 L32 16 L36 16"/><path d="M18 20 L26 20"/><circle cx="20" cy="16" r="3"/><rect x="20" y="22" width="8" height="4" rx="1"/><path d="M28 23 L29 23 L29 25 L28 25"/><path d="M23 21 L21 25 L24 25 L22 29" stroke-width="1.5"/></svg>`,
-  etrike: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="13" r="7"/><circle cx="8" cy="36" r="6"/><circle cx="40" cy="36" r="6"/><path d="M24 20 L24 30"/><path d="M24 30 L8 36"/><path d="M24 30 L40 36"/><path d="M8 36 L40 36"/><rect x="18" y="22" width="8" height="4" rx="1"/><path d="M26 23 L27 23 L27 25 L26 25"/><path d="M21 21 L19 25 L22 25 L20 29" stroke-width="1.5"/></svg>`,
-  default: `<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="34" r="8"/><circle cx="36" cy="34" r="8"/><path d="M12 34 L20 20 L30 20 L36 34"/><path d="M20 20 L24 28 L36 34"/><path d="M30 20 L32 16 L36 16"/><path d="M18 20 L26 20"/><circle cx="20" cy="16" r="3"/></svg>`,
-};
 
 // ── ICON KEYWORD MAP ──────────────────────────────────────────────────────────
 const ICON_MAP = [
-  { keywords: ['kids','youth','junior','children','balance','mini'],    icon: 'kids_youth' },
-  { keywords: ['bmx','stunt','dirt','jump','trick'],                    icon: 'bmx' },
-  { keywords: ['beach','cruiser'],                                      icon: 'beach_cruiser' },
-  { keywords: ['mountain','mtb','enduro','downhill','trail'],           icon: 'mountain' },
-  { keywords: ['e-trike','etrike','electric trike'],                    icon: 'etrike' },
-  { keywords: ['e-bike','ebike','electric bike','electric'],            icon: 'ebike' },
-  { keywords: ['trike','tricycle','three wheel'],                       icon: 'trike' },
-  { keywords: ['cargo','utility','longtail','freight'],                 icon: 'cargo' },
-  { keywords: ['fixie','fixed','single speed'],                         icon: 'fixie' },
-  { keywords: ['gravel','adventure','bikepacking'],                     icon: 'gravel' },
-  { keywords: ['road','racing','race'],                                 icon: 'road' },
-  { keywords: ['hybrid'],                                               icon: 'hybrid' },
-  { keywords: ['folding','fold','compact'],                             icon: 'default' },
-  { keywords: ['fat','plus','wide','snow'],                             icon: 'default' },
-  { keywords: ['city','urban','commuter','dutch'],                      icon: 'hybrid' },
-  { keywords: ['touring','tour','travel'],                              icon: 'road' },
+  { keywords: ['kids','youth','junior','children','balance','mini'],    icon: '🧒' },
+  { keywords: ['bmx','stunt','dirt','jump','trick'],                    icon: '🤸' },
+  { keywords: ['beach','cruiser'],                                      icon: '🏖️' },
+  { keywords: ['mountain','mtb','enduro','downhill','trail'],           icon: '⛰️' },
+  { keywords: ['e-trike','etrike','electric trike'],                    icon: '⚡🛺' },
+  { keywords: ['e-bike','ebike','electric bike','electric'],            icon: '⚡🚲' },
+  { keywords: ['trike','tricycle','three wheel'],                       icon: '🛺' },
+  { keywords: ['cargo','utility','longtail','freight'],                 icon: '📦' },
+  { keywords: ['fixie','fixed','single speed'],                         icon: '⚡' },
+  { keywords: ['gravel','adventure','bikepacking'],                     icon: '🪨' },
+  { keywords: ['road','racing','race'],                                 icon: '🏁' },
+  { keywords: ['hybrid'],                                               icon: '🚲' },
+  { keywords: ['folding','fold','compact'],                             icon: '📁' },
+  { keywords: ['fat','plus','wide','snow'],                             icon: '🏔️' },
+  { keywords: ['city','urban','commuter','dutch'],                      icon: '🏙️' },
+  { keywords: ['touring','tour','travel'],                              icon: '🗺️' },
+  { keywords: ['tandem','double'],                                      icon: '👫' },
+  { keywords: ['recumbent','laid'],                                     icon: '🛋️' },
 ];
 
 // ── GET ICON FROM TAB NAME ────────────────────────────────────────────────────
 function getIcon(tabName) {
   const name = tabName.toLowerCase();
   for (const entry of ICON_MAP) {
-    if (entry.keywords.some(k => name.includes(k))) return SVG_ICONS[entry.icon];
+    if (entry.keywords.some(k => name.includes(k))) return entry.icon;
   }
-  return SVG_ICONS.default;
+  return '🚲'; // default fallback
 }
 
 // ── CONFIG ──────────────────────────────────────────────────────────────────
@@ -1015,7 +1000,7 @@ async function selectBike(bike) {
   document.getElementById('step3num').className = 'step-num';
 
   // Update quote badge
-  document.getElementById('quoteBikeIcon').innerHTML = getIcon(bike);
+  document.getElementById('quoteBikeIcon').textContent = getIcon(bike);
   document.getElementById('quoteBikeName').textContent = bike;
   document.getElementById('quoteBikeBadge').style.display = 'inline-flex';
 
