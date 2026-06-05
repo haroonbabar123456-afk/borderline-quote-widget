@@ -731,6 +731,20 @@
         </div>
       </div>
 
+      <div id="bikeDetailsForm" style="display:none; margin:10px 0; padding:12px; background:rgba(232,113,26,0.08); border:1px solid var(--orange); border-radius:8px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; letter-spacing:0.05em; color:var(--orange); margin-bottom:8px;">BIKE DETAILS</div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:11px; color:#8a8f9e; margin-bottom:4px;">Bike make and model (e.g. Trek FX3 2023)</div>
+          <input id="bikeMakeModel" type="text" placeholder="e.g. Trek FX3 2023"
+            style="width:100%; box-sizing:border-box; padding:8px 10px; background:rgba(255,255,255,0.05); border:1px solid rgba(232,113,26,0.3); border-radius:6px; font-size:12px; color:#8a8f9e; outline:none;">
+        </div>
+        <div>
+          <div style="font-size:11px; color:#8a8f9e; margin-bottom:4px;">Upload a photo of your bike (optional)</div>
+          <input id="bikePhoto" type="file" accept="image/*"
+            style="width:100%; box-sizing:border-box; font-size:11px; color:#8a8f9e; cursor:pointer;">
+        </div>
+      </div>
+
       <button class="cta-btn" id="ctaBtn" onclick="requestQuote()">Request This Service</button>
       <button class="clear-btn" onclick="clearAll()">Clear Selection</button>
     </div>
@@ -1158,6 +1172,7 @@ function updateQuote() {
   
   document.getElementById('partsRow').style.display = hasSourceQuote ? 'flex' : 'none';
   document.getElementById('partsQuestion').style.display = hasSourceQuote ? 'block' : 'none';
+  document.getElementById('bikeDetailsForm').style.display = hasSourceQuote ? 'block' : 'none';
   document.getElementById('partsNote').style.display = hasSourceQuote ? 'block' : 'none';
 }
 
@@ -1186,6 +1201,9 @@ function requestQuote() {
   const grand = laborSum + mobileFee;
   const hasSourceQuote = selectedServices.some(s=>s.parts && s.parts!=='N/A');
   const partsSupplyEl = document.querySelector('input[name="partsSupply"]:checked');
+  const bikeMakeModel = document.getElementById('bikeMakeModel').value.trim();
+  const bikePhotoEl = document.getElementById('bikePhoto');
+  const bikePhotoName = bikePhotoEl && bikePhotoEl.files.length > 0 ? bikePhotoEl.files[0].name : null;
   const partsSupplyMap = { customer: 'Customer will supply parts', borderline: 'Borderline Bikes to supply parts', unsure: 'Parts supply TBD' };
   const partsSupplyText = partsSupplyEl ? partsSupplyMap[partsSupplyEl.value] : null;
   const now = new Date();
@@ -1276,6 +1294,14 @@ function requestQuote() {
             ${partsSupplyText?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
               <span>Parts Supply</span>
               <span>${partsSupplyText}</span>
+            </div>`:''}
+            \${bikeMakeModel?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
+              <span>Bike</span>
+              <span>\${bikeMakeModel}</span>
+            </div>`:''}
+            \${bikePhotoName?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
+              <span>Photo</span>
+              <span>\${bikePhotoName}</span>
             </div>`:''}
             <div class="qm-total-row grand">
               <span>Total Labor Estimate</span>
