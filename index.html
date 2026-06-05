@@ -156,7 +156,7 @@
   .step-sub { font-size:12px; color:var(--muted); margin-top:2px; }
 
   /* ── BIKE TYPE GRID ── */
-  .bike-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .bike-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
   .bike-btn {
     background: var(--card);
     border: 1.5px solid var(--border);
@@ -195,6 +195,7 @@
   /* ── CATEGORY SECTIONS ── */
   .categories-area { margin-top:20px; }
   .loading-state {
+    display:flex; flex-direction:column; align-items:center; gap:12px;
     text-align:center; padding:40px;
     font-family:'Barlow Condensed',sans-serif; font-size:16px;
     color:var(--muted); letter-spacing:2px; text-transform:uppercase;
@@ -709,17 +710,13 @@
           <span class="br-label">Mobile service charge</span>
           <span class="br-val">$50.00</span>
         </div>
-        <div class="breakdown-row">
-          <span class="br-label">Mobile service charge</span>
-          <span class="br-val">$50.00</span>
-        </div>
         <div class="breakdown-total">
           <span class="bt-label">Total Labor</span>
           <span class="bt-val" id="grandTotal">$0</span>
         </div>
       </div>
 
-      <div class="note-banner" id="partsNote">
+      <div class="note-banner" id="partsNote" style="display:none">
         ⚠ Pricing shown is for labor only. Replacement parts (if required) are extra and should be considered before booking service.
       <br><br>⚠ Additional fees not shown. Final price will change when taxes and/or credit card fees are applied.
       </div>
@@ -743,28 +740,31 @@
 <div class="toast" id="toast">Quote copied to clipboard!</div>
 
 <script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const SHEET_ID = '1xsZb1EW2xxsqJqO38siPI9FrXjA3oJLn7i8CKE7gqNg';
+const MASTER_TAB = 'Master List'; // First tab — always skipped
 
-
-// ── ICON KEYWORD MAP ──────────────────────────────────────────────────────────
+// ── ICON KEYWORD MAP ─────────────────────────────────────────────────────────
+// Partial, case-insensitive matching — add keywords as needed
 const ICON_MAP = [
   { keywords: ['kids','youth','junior','children','balance','mini'],    icon: '🧒' },
   { keywords: ['bmx','stunt','dirt','jump','trick'],                    icon: '🤸' },
   { keywords: ['beach','cruiser'],                                      icon: '🏖️' },
   { keywords: ['mountain','mtb','enduro','downhill','trail'],           icon: '⛰️' },
+  { keywords: ['road','racing','race'],                                 icon: '🏁' },
+  { keywords: ['gravel','adventure','bikepacking'],                     icon: '🪨' },
+  { keywords: ['cargo','utility','longtail','freight'],                 icon: '📦' },
   { keywords: ['e-trike','etrike','electric trike'],                    icon: '⚡🛺' },
   { keywords: ['e-bike','ebike','electric bike','electric'],            icon: '⚡🚲' },
   { keywords: ['trike','tricycle','three wheel'],                       icon: '🛺' },
-  { keywords: ['cargo','utility','longtail','freight'],                 icon: '📦' },
   { keywords: ['fixie','fixed','single speed'],                         icon: '⚡' },
-  { keywords: ['gravel','adventure','bikepacking'],                     icon: '🪨' },
-  { keywords: ['road','racing','race'],                                 icon: '🏁' },
   { keywords: ['hybrid'],                                               icon: '🚲' },
   { keywords: ['folding','fold','compact'],                             icon: '📁' },
   { keywords: ['fat','plus','wide','snow'],                             icon: '🏔️' },
   { keywords: ['city','urban','commuter','dutch'],                      icon: '🏙️' },
-  { keywords: ['touring','tour','travel'],                              icon: '🗺️' },
-  { keywords: ['tandem','double'],                                      icon: '👫' },
-  { keywords: ['recumbent','laid'],                                     icon: '🛋️' },
+  { keywords: ['touring','tour','travel','randonneur'],                 icon: '🗺️' },
+  { keywords: ['tandem','double','couples'],                            icon: '👫' },
+  { keywords: ['recumbent','laid','lowrider'],                          icon: '🛋️' },
 ];
 
 // ── GET ICON FROM TAB NAME ────────────────────────────────────────────────────
@@ -776,12 +776,8 @@ function getIcon(tabName) {
   return '🚲'; // default fallback
 }
 
-// ── CONFIG ──────────────────────────────────────────────────────────────────
-const SHEET_ID = '1xsZb1EW2xxsqJqO38siPI9FrXjA3oJLn7i8CKE7gqNg';
-const MASTER_TAB = 'Master List';
-
-
-let BIKE_TYPES = ['Kids/Youth','BMX','Beach Cruiser','Mountain','Hybrid','Fixie','Road','Gravel','Cargo','Trike','E-Bike','E-Trike'];
+// Dynamic bike types — populated from Google Sheet tabs at runtime
+let BIKE_TYPES = [];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let allData = {};          // { bikeName: [ {category, task, labor, parts, mobile} ] }
@@ -822,33 +818,44 @@ async function fetchSheetTab(tabName) {
   return dataRows;
 }
 
+// ── FETCH BIKE TYPES FROM MASTER LIST HEADERS ────────────────────────────────
+// Reads column headers (row 1) from Master List — columns F onwards are bike types
+// Client just adds/removes columns in Master List to add/remove bike types
 async function fetchTabNames() {
-  const feedUrl = `https://spreadsheets.google.com/feeds/worksheets/${SHEET_ID}/public/basic?alt=json`;
-  const res = await fetch(feedUrl);
-  const json = await res.json();
-  const entries = json.feed.entry;
-  // First tab is Master List — skip it, rest are bike types
-  return entries
-    .map(e => e.title.$t)
-    .filter(name => name !== MASTER_TAB && name.trim() !== '');
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}&tq=SELECT%20*%20LIMIT%201`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
+  const json = JSON.parse(jsonStr ? jsonStr[1] : text.substring(47).slice(0,-2));
+
+  // Column headers are in json.table.cols — label is the header name
+  // First 5 cols are: Service Category, Service Task, Labor, Parts, Mobile Service Charge
+  // From col index 5 onwards are bike type names
+  const cols = json.table.cols;
+  const bikeTypes = cols
+    .slice(5) // skip first 5 fixed columns
+    .map(c => c.label ? c.label.trim() : '')
+    .filter(name => name !== ''); // remove empty columns
+
+  if (bikeTypes.length === 0) throw new Error('No bike types found in headers');
+  return bikeTypes;
 }
 
 async function loadAllData() {
   document.getElementById('dataStatus').textContent = 'Loading live data...';
   try {
-    // Fetch tab names dynamically from Google Sheets
+    // Step 1: fetch tab names dynamically
     const tabs = await fetchTabNames();
-    if (tabs.length > 0) {
-      BIKE_TYPES.length = 0;
-      tabs.forEach(t => BIKE_TYPES.push(t));
-    }
+    BIKE_TYPES = tabs;
+
+    // Step 2: fetch each bike tab's data in parallel
     const promises = BIKE_TYPES.map(b => fetchSheetTab(b).then(rows => ({bike:b, rows})));
     const results = await Promise.all(promises);
     results.forEach(({bike,rows}) => { allData[bike] = rows; });
     document.getElementById('dataStatus').textContent = 'Live data loaded ✓';
     buildBikeGrid();
   } catch(e) {
-    console.warn('Live fetch failed, using fallback:', e);
+    console.warn('Dynamic tab fetch failed, using fallback:', e);
     document.getElementById('dataStatus').textContent = 'Using offline data';
     loadFallbackData();
     buildBikeGrid();
@@ -857,6 +864,8 @@ async function loadAllData() {
 
 // ── FALLBACK DATA (from uploaded Excel) ──────────────────────────────────────
 function loadFallbackData() {
+  // Set fallback bike types if dynamic fetch failed
+  BIKE_TYPES = ['Kids/Youth','BMX','Beach Cruiser','Mountain','Hybrid','Fixie','Road','Gravel','Cargo','Trike','E-Bike','E-Trike'];
   // Embedded snapshot of master data mapped per bike type
   const master = [
     {cat:"Warranty Evaluation",task:"Review fault and advise",labor:60,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
@@ -867,14 +876,14 @@ function loadFallbackData() {
     {cat:"Bike Assembly",task:"Unbox and build adults E-bike with controls 16\"-29\" (Electric)",labor:160,parts:"N/A",bikes:["E-Bike"]},
     {cat:"Bike Assembly",task:"Unbox and build adults acoustic cargo bike with controls 16\"-29\" (Standard)",labor:170,parts:"N/A",bikes:["Hybrid","Cruiser"]},
     {cat:"Bike Assembly",task:"Unbox and build adults E-cargo bike with controls 16\"-29\" (Electric)",labor:190,parts:"N/A",bikes:["E-Bike"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike without controls (Standard)",labor:260,parts:"N/A",bikes:["Trike"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike with controls (Standard)",labor:300,parts:"N/A",bikes:["Trike"]},
+    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike without controls (Standard)",labor:260,parts:"N/A",bikes:["Trike","Cargo"]},
+    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike with controls (Standard)",labor:300,parts:"N/A",bikes:["Trike","Cargo"]},
     {cat:"Bike Assembly",task:"Unbox and build adults E-trike with controls (Electric)",labor:340,parts:"N/A",bikes:["E-Trike"]},
     {cat:"Tuneup",task:"Basic tuneup on kids acoustic bike without controls 8\"-16\" (Standard)",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser"]},
     {cat:"Tuneup",task:"Basic tuneup on kids E-bike without controls 8\"-16\" (Electric)",labor:80,parts:"source/quote",bikes:["E-Bike"]},
     {cat:"Tuneup",task:"Basic tuneup on adults acoustic bike with controls 16\"-29\" (Standard)",labor:120,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
     {cat:"Tuneup",task:"Basic tuneup on adults E-bike with controls 16\"-29\" (Electric)",labor:140,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Tuneup",task:"Basic tuneup on adults acoustic trike without controls (Standard)",labor:180,parts:"source/quote",bikes:["Trike"]},
+    {cat:"Tuneup",task:"Basic tuneup on adults acoustic trike without controls (Standard)",labor:180,parts:"source/quote",bikes:["Trike","Cargo"]},
     {cat:"Tuneup",task:"Basic tuneup on adults E-trike with controls (Electric)",labor:260,parts:"source/quote",bikes:["E-Trike"]},
     {cat:"Bike Return",task:"Box and Ship original box/packing material, Item was fully assembled (Standard)",labor:110,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
     {cat:"Bike Return",task:"Box and Ship original box/packing material, Item was fully assembled (Electric)",labor:140,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
@@ -1004,14 +1013,14 @@ async function selectBike(bike) {
   document.getElementById('quoteBikeName').textContent = bike;
   document.getElementById('quoteBikeBadge').style.display = 'inline-flex';
 
-  // Show loading state in categories
+  // Show spinner immediately for smooth transition
   document.getElementById('categoriesArea').innerHTML = `
     <div class="loading-state">
       <div class="spinner"></div>
       <span style="color:var(--muted);font-size:0.85rem;letter-spacing:0.05em;">FETCHING LATEST SERVICES...</span>
     </div>`;
 
-  // Re-fetch live data for this bike type from Google Sheets
+  // Re-fetch live data from Google Sheets for this bike type
   try {
     const freshRows = await fetchSheetTab(bike);
     if (freshRows.length > 0) {
@@ -1043,6 +1052,12 @@ function buildCategories() {
   });
 
   area.innerHTML = '';
+
+  if (services.length === 0) {
+    area.innerHTML = `<div class="loading-state" style="color:var(--muted)">No services found for this bike type.</div>`;
+    return;
+  }
+
   Object.entries(grouped).forEach(([cat, items]) => {
     const block = document.createElement('div');
     block.className = 'category-block';
@@ -1165,7 +1180,6 @@ function clearAll() {
 }
 
 function requestQuote() {
-  const logoSrc = document.querySelector('.brand-logo').src;
   const logoSrc = document.querySelector('.brand-logo').src;
   const mobileFee = mobileActive ? 50 : 0;
   const laborSum = selectedServices.reduce((a,s)=>a+(s.labor||0),0);
