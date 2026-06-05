@@ -156,7 +156,7 @@
   .step-sub { font-size:12px; color:var(--muted); margin-top:2px; }
 
   /* ── BIKE TYPE GRID ── */
-  .bike-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .bike-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
   .bike-btn {
     background: var(--card);
     border: 1.5px solid var(--border);
@@ -195,7 +195,6 @@
   /* ── CATEGORY SECTIONS ── */
   .categories-area { margin-top:20px; }
   .loading-state {
-    display:flex; flex-direction:column; align-items:center; gap:12px;
     text-align:center; padding:40px;
     font-family:'Barlow Condensed',sans-serif; font-size:16px;
     color:var(--muted); letter-spacing:2px; text-transform:uppercase;
@@ -634,8 +633,8 @@
          alt="I Hate Bike Shops" class="brand-logo">
   </div>
   <div class="brand">
-    <h1>Instant Quote Builder</h1>
-    <p>Your One Stop Mobile Bike Shop</p>
+    <h1>Instant Quote</h1>
+    <p>The Bike Shop Alternative</p>
   </div>
   <div class="header-right">
     <div class="status-dot"></div>
@@ -682,7 +681,7 @@
   <!-- RIGHT: QUOTE PANEL -->
   <div class="right-panel">
     <div class="quote-title">Your Quote</div>
-    <div class="quote-sub">Mobile service included — final quote may vary for parts</div>
+    <div class="quote-sub">Mobile convenience fee included</div>
 
     <div id="quoteBikeBadge" style="display:none" class="quote-bike-badge">
       <span id="quoteBikeIcon"></span>
@@ -710,14 +709,29 @@
           <span class="br-label">Mobile service charge</span>
           <span class="br-val">$50.00</span>
         </div>
+        <div class="breakdown-row">
+          <span class="br-label">Mobile service charge</span>
+          <span class="br-val">$50.00</span>
+        </div>
         <div class="breakdown-total">
           <span class="bt-label">Total Labor</span>
           <span class="bt-val" id="grandTotal">$0</span>
         </div>
       </div>
 
-      <div class="note-banner" id="partsNote" style="display:none">
-        ⚠ Parts marked "source/quote" are priced separately based on availability. Final parts cost will be confirmed before work begins.
+      <div class="note-banner" id="partsNote">
+        ⚠ Pricing shown is for labor only. Replacement parts (if required) are extra and should be considered before booking service.
+      <br><br>⚠ Additional fees not shown. Final price will change when taxes and/or credit card fees are applied.
+      </div>
+
+      <div id="partsQuestion" style="display:none; margin:10px 0; padding:12px; background:rgba(232,113,26,0.08); border:1px solid var(--orange); border-radius:8px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; letter-spacing:0.05em; color:var(--orange); margin-bottom:8px;">REPLACEMENT PARTS</div>
+        <div style="font-size:0.85rem; color:var(--dark); margin-bottom:10px;">Do you have the replacement parts, or should Borderline Bikes supply them?</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem;"><input type="radio" name="partsSupply" value="customer" style="accent-color:var(--orange);"> I have the parts</label>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem;"><input type="radio" name="partsSupply" value="borderline" style="accent-color:var(--orange);"> Borderline Bikes to supply</label>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem;"><input type="radio" name="partsSupply" value="unsure" style="accent-color:var(--orange);"> Not sure yet</label>
+        </div>
       </div>
 
       <button class="cta-btn" id="ctaBtn" onclick="requestQuote()">Request This Service</button>
@@ -729,31 +743,28 @@
 <div class="toast" id="toast">Quote copied to clipboard!</div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────────────
-const SHEET_ID = '1xsZb1EW2xxsqJqO38siPI9FrXjA3oJLn7i8CKE7gqNg';
-const MASTER_TAB = 'Master List'; // First tab — always skipped
 
-// ── ICON KEYWORD MAP ─────────────────────────────────────────────────────────
-// Partial, case-insensitive matching — add keywords as needed
+
+// ── ICON KEYWORD MAP ──────────────────────────────────────────────────────────
 const ICON_MAP = [
   { keywords: ['kids','youth','junior','children','balance','mini'],    icon: '🧒' },
   { keywords: ['bmx','stunt','dirt','jump','trick'],                    icon: '🤸' },
   { keywords: ['beach','cruiser'],                                      icon: '🏖️' },
   { keywords: ['mountain','mtb','enduro','downhill','trail'],           icon: '⛰️' },
-  { keywords: ['road','racing','race'],                                 icon: '🏁' },
-  { keywords: ['gravel','adventure','bikepacking'],                     icon: '🪨' },
-  { keywords: ['cargo','utility','longtail','freight'],                 icon: '📦' },
   { keywords: ['e-trike','etrike','electric trike'],                    icon: '⚡🛺' },
   { keywords: ['e-bike','ebike','electric bike','electric'],            icon: '⚡🚲' },
   { keywords: ['trike','tricycle','three wheel'],                       icon: '🛺' },
+  { keywords: ['cargo','utility','longtail','freight'],                 icon: '📦' },
   { keywords: ['fixie','fixed','single speed'],                         icon: '⚡' },
+  { keywords: ['gravel','adventure','bikepacking'],                     icon: '🪨' },
+  { keywords: ['road','racing','race'],                                 icon: '🏁' },
   { keywords: ['hybrid'],                                               icon: '🚲' },
   { keywords: ['folding','fold','compact'],                             icon: '📁' },
   { keywords: ['fat','plus','wide','snow'],                             icon: '🏔️' },
   { keywords: ['city','urban','commuter','dutch'],                      icon: '🏙️' },
-  { keywords: ['touring','tour','travel','randonneur'],                 icon: '🗺️' },
-  { keywords: ['tandem','double','couples'],                            icon: '👫' },
-  { keywords: ['recumbent','laid','lowrider'],                          icon: '🛋️' },
+  { keywords: ['touring','tour','travel'],                              icon: '🗺️' },
+  { keywords: ['tandem','double'],                                      icon: '👫' },
+  { keywords: ['recumbent','laid'],                                     icon: '🛋️' },
 ];
 
 // ── GET ICON FROM TAB NAME ────────────────────────────────────────────────────
@@ -765,7 +776,11 @@ function getIcon(tabName) {
   return '🚲'; // default fallback
 }
 
-// Dynamic bike types — populated from Google Sheet tabs at runtime
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const SHEET_ID = '1xsZb1EW2xxsqJqO38siPI9FrXjA3oJLn7i8CKE7gqNg';
+const MASTER_TAB = 'Master List';
+
+
 let BIKE_TYPES = [];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
@@ -807,25 +822,23 @@ async function fetchSheetTab(tabName) {
   return dataRows;
 }
 
-// ── FETCH BIKE TYPES FROM MASTER LIST HEADERS ────────────────────────────────
-// Reads column headers (row 1) from Master List — columns F onwards are bike types
-// Client just adds/removes columns in Master List to add/remove bike types
 async function fetchTabNames() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}&tq=SELECT%20*%20LIMIT%201`;
-  const res = await fetch(url);
+  // Fetch row 1 of Master List to get bike type column headers (cols F onwards)
+  // Use tq=SELECT A LIMIT 0 to get column metadata only — fast and lightweight
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  const res = await fetch(url, { signal: controller.signal });
+  clearTimeout(timeout);
   const text = await res.text();
   const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
   const json = JSON.parse(jsonStr ? jsonStr[1] : text.substring(47).slice(0,-2));
-
-  // Column headers are in json.table.cols — label is the header name
-  // First 5 cols are: Service Category, Service Task, Labor, Parts, Mobile Service Charge
-  // From col index 5 onwards are bike type names
   const cols = json.table.cols;
-  const bikeTypes = cols
-    .slice(5) // skip first 5 fixed columns
+  // Cols 0-4 = Service Category, Service Task, Labor, Parts, Mobile Service Charge
+  // Cols 5+ = bike type names
+  const bikeTypes = cols.slice(5)
     .map(c => c.label ? c.label.trim() : '')
-    .filter(name => name !== ''); // remove empty columns
-
+    .filter(name => name !== '');
   if (bikeTypes.length === 0) throw new Error('No bike types found in headers');
   return bikeTypes;
 }
@@ -833,18 +846,15 @@ async function fetchTabNames() {
 async function loadAllData() {
   document.getElementById('dataStatus').textContent = 'Loading live data...';
   try {
-    // Step 1: fetch tab names dynamically
     const tabs = await fetchTabNames();
     BIKE_TYPES = tabs;
-
-    // Step 2: fetch each bike tab's data in parallel
     const promises = BIKE_TYPES.map(b => fetchSheetTab(b).then(rows => ({bike:b, rows})));
     const results = await Promise.all(promises);
     results.forEach(({bike,rows}) => { allData[bike] = rows; });
     document.getElementById('dataStatus').textContent = 'Live data loaded ✓';
     buildBikeGrid();
   } catch(e) {
-    console.warn('Dynamic tab fetch failed, using fallback:', e);
+    console.warn('Dynamic fetch failed, using fallback:', e);
     document.getElementById('dataStatus').textContent = 'Using offline data';
     loadFallbackData();
     buildBikeGrid();
@@ -853,7 +863,6 @@ async function loadAllData() {
 
 // ── FALLBACK DATA (from uploaded Excel) ──────────────────────────────────────
 function loadFallbackData() {
-  // Set fallback bike types if dynamic fetch failed
   BIKE_TYPES = ['Kids/Youth','BMX','Beach Cruiser','Mountain','Hybrid','Fixie','Road','Gravel','Cargo','Trike','E-Bike','E-Trike'];
   // Embedded snapshot of master data mapped per bike type
   const master = [
@@ -865,14 +874,14 @@ function loadFallbackData() {
     {cat:"Bike Assembly",task:"Unbox and build adults E-bike with controls 16\"-29\" (Electric)",labor:160,parts:"N/A",bikes:["E-Bike"]},
     {cat:"Bike Assembly",task:"Unbox and build adults acoustic cargo bike with controls 16\"-29\" (Standard)",labor:170,parts:"N/A",bikes:["Hybrid","Cruiser"]},
     {cat:"Bike Assembly",task:"Unbox and build adults E-cargo bike with controls 16\"-29\" (Electric)",labor:190,parts:"N/A",bikes:["E-Bike"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike without controls (Standard)",labor:260,parts:"N/A",bikes:["Trike","Cargo"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike with controls (Standard)",labor:300,parts:"N/A",bikes:["Trike","Cargo"]},
+    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike without controls (Standard)",labor:260,parts:"N/A",bikes:["Trike"]},
+    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike with controls (Standard)",labor:300,parts:"N/A",bikes:["Trike"]},
     {cat:"Bike Assembly",task:"Unbox and build adults E-trike with controls (Electric)",labor:340,parts:"N/A",bikes:["E-Trike"]},
     {cat:"Tuneup",task:"Basic tuneup on kids acoustic bike without controls 8\"-16\" (Standard)",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser"]},
     {cat:"Tuneup",task:"Basic tuneup on kids E-bike without controls 8\"-16\" (Electric)",labor:80,parts:"source/quote",bikes:["E-Bike"]},
     {cat:"Tuneup",task:"Basic tuneup on adults acoustic bike with controls 16\"-29\" (Standard)",labor:120,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
     {cat:"Tuneup",task:"Basic tuneup on adults E-bike with controls 16\"-29\" (Electric)",labor:140,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Tuneup",task:"Basic tuneup on adults acoustic trike without controls (Standard)",labor:180,parts:"source/quote",bikes:["Trike","Cargo"]},
+    {cat:"Tuneup",task:"Basic tuneup on adults acoustic trike without controls (Standard)",labor:180,parts:"source/quote",bikes:["Trike"]},
     {cat:"Tuneup",task:"Basic tuneup on adults E-trike with controls (Electric)",labor:260,parts:"source/quote",bikes:["E-Trike"]},
     {cat:"Bike Return",task:"Box and Ship original box/packing material, Item was fully assembled (Standard)",labor:110,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
     {cat:"Bike Return",task:"Box and Ship original box/packing material, Item was fully assembled (Electric)",labor:140,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
@@ -1002,14 +1011,14 @@ async function selectBike(bike) {
   document.getElementById('quoteBikeName').textContent = bike;
   document.getElementById('quoteBikeBadge').style.display = 'inline-flex';
 
-  // Show spinner immediately for smooth transition
+  // Show loading state in categories
   document.getElementById('categoriesArea').innerHTML = `
     <div class="loading-state">
       <div class="spinner"></div>
       <span style="color:var(--muted);font-size:0.85rem;letter-spacing:0.05em;">FETCHING LATEST SERVICES...</span>
     </div>`;
 
-  // Re-fetch live data from Google Sheets for this bike type
+  // Re-fetch live data for this bike type from Google Sheets
   try {
     const freshRows = await fetchSheetTab(bike);
     if (freshRows.length > 0) {
@@ -1041,12 +1050,6 @@ function buildCategories() {
   });
 
   area.innerHTML = '';
-
-  if (services.length === 0) {
-    area.innerHTML = `<div class="loading-state" style="color:var(--muted)">No services found for this bike type.</div>`;
-    return;
-  }
-
   Object.entries(grouped).forEach(([cat, items]) => {
     const block = document.createElement('div');
     block.className = 'category-block';
@@ -1146,6 +1149,7 @@ function updateQuote() {
   
   
   document.getElementById('partsRow').style.display = hasSourceQuote ? 'flex' : 'none';
+  document.getElementById('partsQuestion').style.display = hasSourceQuote ? 'block' : 'none';
   document.getElementById('partsNote').style.display = hasSourceQuote ? 'block' : 'none';
 }
 
@@ -1169,10 +1173,14 @@ function clearAll() {
 
 function requestQuote() {
   const logoSrc = document.querySelector('.brand-logo').src;
+  const logoSrc = document.querySelector('.brand-logo').src;
   const mobileFee = mobileActive ? 50 : 0;
   const laborSum = selectedServices.reduce((a,s)=>a+(s.labor||0),0);
   const grand = laborSum + mobileFee;
   const hasSourceQuote = selectedServices.some(s=>s.parts && s.parts!=='N/A');
+  const partsSupplyEl = document.querySelector('input[name="partsSupply"]:checked');
+  const partsSupplyMap = { customer: 'Customer will supply parts', borderline: 'Borderline Bikes to supply parts', unsure: 'Parts supply TBD' };
+  const partsSupplyText = partsSupplyEl ? partsSupplyMap[partsSupplyEl.value] : null;
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const quoteNum = 'BBS-' + now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + String(Math.floor(Math.random()*9000)+1000);
@@ -1196,6 +1204,18 @@ function requestQuote() {
 
   const modalHTML = `
     <div id="quoteModal" onclick="closeModalOutside(event)">
+  <div id="sendOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1001; align-items:center; justify-content:center;" onclick="event.stopPropagation()">
+    <div style="background:#fff; border-radius:12px; padding:28px; width:90%; max-width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+      <h3 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; letter-spacing:0.05em; margin:0 0 6px; color:#111;">SEND YOUR QUOTE</h3>
+      <p style="font-size:0.85rem; color:#666; margin:0 0 16px;">Enter your email or mobile number and we'll send you a copy.</p>
+      <input id="sendInput" type="text" placeholder="Email address or phone number" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.95rem; margin-bottom:8px; outline:none;" onkeydown="if(event.key==='Enter') sendQuote()">
+      <div id="sendError" style="color:#e8711a; font-size:0.8rem; min-height:18px; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="sendQuote()" style="flex:1; padding:10px; background:#e8711a; color:#fff; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:1rem; letter-spacing:0.05em; cursor:pointer;">SEND</button>
+        <button onclick="closeSendOptions()" style="padding:10px 16px; background:#f0f0f0; color:#333; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:1rem; cursor:pointer;">CANCEL</button>
+      </div>
+    </div>
+  </div>
       <div class="qm-box" id="qmBox">
         <div class="qm-header">
           <div class="qm-logo">
@@ -1246,6 +1266,10 @@ function requestQuote() {
               <span>Parts</span>
               <span>Quoted separately</span>
             </div>`:''}
+            ${partsSupplyText?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
+              <span>Parts Supply</span>
+              <span>${partsSupplyText}</span>
+            </div>`:''}
             <div class="qm-total-row grand">
               <span>Total Labor Estimate</span>
               <span>$${grand.toFixed(2)}</span>
@@ -1263,7 +1287,7 @@ function requestQuote() {
 
         <div class="qm-actions no-print">
           <button class="qm-btn primary" onclick="printQuote()">🖨 Print / Save as PDF</button>
-          <button class="qm-btn secondary" onclick="copyQuote('${quoteNum}',${grand})">📋 Copy to Clipboard</button>
+          <button class="qm-btn secondary" onclick="showSendOptions('${quoteNum}',${grand})">📤 Send Copy</button>
           <button class="qm-btn ghost" onclick="closeModal()">✕ Close</button>
         </div>
       </div>
@@ -1301,7 +1325,59 @@ function copyQuote(num, grand) {
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-loadAllData();
+// Safety net: if data hasn't loaded in 10s, force fallback
+const _safetyTimer = setTimeout(() => {
+  if (BIKE_TYPES.length === 0) {
+    console.warn('Safety fallback triggered');
+    document.getElementById('dataStatus').textContent = 'Using offline data';
+    loadFallbackData();
+    buildBikeGrid();
+  }
+}, 10000);
+loadAllData().finally(() => clearTimeout(_safetyTimer));
+
+// ── SEND COPY ─────────────────────────────────────────────────────────────────
+function showSendOptions(quoteNum, grand) {
+  const bike = selectedBike || '';
+  const services = selectedServices.map(s => `• ${s.task} — $${(s.labor||0).toFixed(2)}`).join('\n');
+  const partsNote = selectedServices.some(s=>s.parts && s.parts!=='N/A') ? '\n⚠ Parts quoted separately.' : '';
+  const partsSupplyEl = document.querySelector('input[name="partsSupply"]:checked');
+  const partsSupplyMap = { customer: 'Customer supplying parts', borderline: 'Borderline Bikes to supply parts', unsure: 'Parts supply TBD' };
+  const partsLine = partsSupplyEl ? `\nParts: ${partsSupplyMap[partsSupplyEl.value]}` : '';
+  const quoteText = `BORDERLINE BIKES — INSTANT QUOTE\nQuote #${quoteNum}\n\nBike: ${bike}\n\nServices:\n${services}${partsNote}${partsLine}\n\nMobile Convenience Fee: $50.00\nTOTAL LABOR: $${grand.toFixed(2)}\n\nPricing shown is for labor only. Replacement parts (if required) are extra.\nAdditional fees not shown. Final price will change when taxes and/or credit card fees are applied.\n\nborderlinebikes.com`;
+  const overlay = document.getElementById('sendOverlay');
+  overlay.dataset.quoteText = quoteText;
+  overlay.style.display = 'flex';
+}
+
+function closeSendOptions() {
+  document.getElementById('sendOverlay').style.display = 'none';
+  document.getElementById('sendInput').value = '';
+  document.getElementById('sendError').textContent = '';
+}
+
+function sendQuote() {
+  const input = document.getElementById('sendInput').value.trim();
+  const overlay = document.getElementById('sendOverlay');
+  const quoteText = overlay.dataset.quoteText;
+  const errEl = document.getElementById('sendError');
+  if (!input) { errEl.textContent = 'Please enter an email or phone number.'; return; }
+  const isEmail = input.includes('@');
+  const isPhone = /^[\d\s\+\-\(\)]{7,}$/.test(input);
+  if (isEmail) {
+    const subject = encodeURIComponent('Your Borderline Bikes Instant Quote');
+    const body = encodeURIComponent(quoteText);
+    window.open(`mailto:${input}?subject=${subject}&body=${body}`, '_blank');
+    closeSendOptions();
+  } else if (isPhone) {
+    const phone = input.replace(/[^\d+]/g,'');
+    const body = encodeURIComponent(quoteText);
+    window.open(`sms:${phone}?body=${body}`, '_blank');
+    closeSendOptions();
+  } else {
+    errEl.textContent = 'Please enter a valid email address or phone number.';
+  }
+}
 </script>
 </body>
 </html>
