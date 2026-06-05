@@ -1009,8 +1009,18 @@ async function selectBike(bike) {
       <span style="color:var(--muted);font-size:0.85rem;letter-spacing:0.05em;">FETCHING LATEST SERVICES...</span>
     </div>`;
 
-  // Brief delay for smooth UX, then render cached data
-  await new Promise(r => setTimeout(r, 180));
+  // Re-fetch live data from Google Sheets for this bike type
+  try {
+    const freshRows = await fetchSheetTab(bike);
+    if (freshRows.length > 0) {
+      allData[bike] = freshRows;
+      // Update service count on the bike button
+      const btn = document.querySelector(`.bike-btn[data-bike="${bike}"] .bike-count`);
+      if (btn) btn.textContent = `${freshRows.length} services`;
+    }
+  } catch(e) {
+    // silently fall back to cached data
+  }
 
   buildCategories();
   updateQuote();
