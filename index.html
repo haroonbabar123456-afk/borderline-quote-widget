@@ -1295,13 +1295,13 @@ function requestQuote() {
               <span>Parts Supply</span>
               <span>${partsSupplyText}</span>
             </div>`:''}
-            \${bikeMakeModel?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
+            ${bikeMakeModel?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
               <span>Bike</span>
-              <span>\${bikeMakeModel}</span>
+              <span>${bikeMakeModel}</span>
             </div>`:''}
-            \${bikePhotoName?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
+            ${bikePhotoName?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
               <span>Photo</span>
-              <span>\${bikePhotoName}</span>
+              <span>${bikePhotoName}</span>
             </div>`:''}
             <div class="qm-total-row grand">
               <span>Total Labor Estimate</span>
