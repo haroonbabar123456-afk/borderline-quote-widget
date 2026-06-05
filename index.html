@@ -1190,6 +1190,11 @@ function removeService(task) {
 
 function clearAll() {
   selectedServices = [];
+  // Also clear bike details fields
+  document.getElementById('bikeMakeModel').value = '';
+  document.getElementById('bikePhoto').value = '';
+  const radios = document.querySelectorAll('input[name="partsSupply"]');
+  radios.forEach(r => r.checked = false);
   buildCategories();
   updateQuote();
 }
