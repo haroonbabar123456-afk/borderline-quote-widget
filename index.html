@@ -1194,7 +1194,7 @@ function clearAll() {
   updateQuote();
 }
 
-function requestQuote() {
+async function requestQuote() {
   const logoSrc = document.querySelector('.brand-logo').src;
   const mobileFee = mobileActive ? 50 : 0;
   const laborSum = selectedServices.reduce((a,s)=>a+(s.labor||0),0);
@@ -1204,6 +1204,13 @@ function requestQuote() {
   const bikeMakeModel = document.getElementById('bikeMakeModel').value.trim();
   const bikePhotoEl = document.getElementById('bikePhoto');
   const bikePhotoName = bikePhotoEl && bikePhotoEl.files.length > 0 ? bikePhotoEl.files[0].name : null;
+  const bikePhotoDataUrl = await new Promise(resolve => {
+    if (!bikePhotoEl || bikePhotoEl.files.length === 0) { resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(bikePhotoEl.files[0]);
+  });
   const partsSupplyMap = { customer: 'Customer will supply parts', borderline: 'Borderline Bikes to supply parts', unsure: 'Parts supply TBD' };
   const partsSupplyText = partsSupplyEl ? partsSupplyMap[partsSupplyEl.value] : null;
   const now = new Date();
@@ -1299,9 +1306,9 @@ function requestQuote() {
               <span>Bike</span>
               <span>${bikeMakeModel}</span>
             </div>`:''}
-            ${bikePhotoName?`<div class="qm-total-row" style="font-size:0.8rem;opacity:0.8;">
-              <span>Photo</span>
-              <span>${bikePhotoName}</span>
+            ${bikePhotoDataUrl?`<div class="qm-row" style="padding:8px 0; border-bottom:1px solid #eee;">
+              <div style="font-size:0.8rem;opacity:0.8;margin-bottom:4px;">Bike Photo</div>
+              <img src="${bikePhotoDataUrl}" alt="Bike photo" style="max-width:100%;max-height:180px;border-radius:6px;object-fit:contain;">
             </div>`:''}
             <div class="qm-total-row grand">
               <span>Total Labor Estimate</span>
