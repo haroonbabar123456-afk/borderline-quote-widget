@@ -822,26 +822,26 @@ async function fetchSheetTab(tabName) {
   return dataRows;
 }
 
+async function fetchTabNames() {
+  const feedUrl = `https://spreadsheets.google.com/feeds/worksheets/${SHEET_ID}/public/basic?alt=json`;
+  const res = await fetch(feedUrl);
+  const json = await res.json();
+  const entries = json.feed.entry;
+  // First tab is Master List — skip it, rest are bike types
+  return entries
+    .map(e => e.title.$t)
+    .filter(name => name !== MASTER_TAB && name.trim() !== '');
+}
+
 async function loadAllData() {
   document.getElementById('dataStatus').textContent = 'Loading live data...';
   try {
-    // Step 1: fetch Master List column headers to get bike type names dynamically
-    const masterUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}`;
-    const masterRes = await fetch(masterUrl);
-    const masterText = await masterRes.text();
-    const masterJsonStr = masterText.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
-    const masterJson = JSON.parse(masterJsonStr ? masterJsonStr[1] : masterText.substring(47).slice(0,-2));
-    // cols[0-4] = fixed columns, cols[5+] = bike types
-    const dynamicTypes = masterJson.table.cols
-      .slice(5)
-      .map(c => c.label ? c.label.trim() : '')
-      .filter(name => name !== '');
-    if (dynamicTypes.length > 0) {
+    // Fetch tab names dynamically from Google Sheets
+    const tabs = await fetchTabNames();
+    if (tabs.length > 0) {
       BIKE_TYPES.length = 0;
-      dynamicTypes.forEach(t => BIKE_TYPES.push(t));
+      tabs.forEach(t => BIKE_TYPES.push(t));
     }
-
-    // Step 2: fetch each bike tab in parallel
     const promises = BIKE_TYPES.map(b => fetchSheetTab(b).then(rows => ({bike:b, rows})));
     const results = await Promise.all(promises);
     results.forEach(({bike,rows}) => { allData[bike] = rows; });
