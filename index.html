@@ -195,6 +195,7 @@
   /* ── CATEGORY SECTIONS ── */
   .categories-area { margin-top:20px; }
   .loading-state {
+    display:flex; flex-direction:column; align-items:center; gap:12px;
     text-align:center; padding:40px;
     font-family:'Barlow Condensed',sans-serif; font-size:16px;
     color:var(--muted); letter-spacing:2px; text-transform:uppercase;
@@ -1001,18 +1002,15 @@ async function selectBike(bike) {
   document.getElementById('quoteBikeName').textContent = bike;
   document.getElementById('quoteBikeBadge').style.display = 'inline-flex';
 
-  // Re-fetch live data for this bike type from Google Sheets
-  try {
-    const freshRows = await fetchSheetTab(bike);
-    if (freshRows.length > 0) {
-      allData[bike] = freshRows;
-      // Update service count on the bike button
-      const btn = document.querySelector(`.bike-btn[data-bike="${bike}"] .bike-count`);
-      if (btn) btn.textContent = `${freshRows.length} services`;
-    }
-  } catch(e) {
-    // silently fall back to cached data
-  }
+  // Show spinner immediately for smooth transition
+  document.getElementById('categoriesArea').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span style="color:var(--muted);font-size:0.85rem;letter-spacing:0.05em;">FETCHING LATEST SERVICES...</span>
+    </div>`;
+
+  // Brief delay for smooth UX, then render cached data
+  await new Promise(r => setTimeout(r, 180));
 
   buildCategories();
   updateQuote();
