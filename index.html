@@ -822,16 +822,22 @@ async function fetchSheetTab(tabName) {
 }
 
 async function fetchTabNames() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}&tq=SELECT%20*%20LIMIT%201`;
+  // Fetch row 1 of Master List to get bike type column headers (cols F onwards)
+  // Use tq=SELECT A LIMIT 0 to get column metadata only — fast and lightweight
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}`;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
+  const timeout = setTimeout(() => controller.abort(), 8000);
   const res = await fetch(url, { signal: controller.signal });
   clearTimeout(timeout);
   const text = await res.text();
   const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
   const json = JSON.parse(jsonStr ? jsonStr[1] : text.substring(47).slice(0,-2));
   const cols = json.table.cols;
-  const bikeTypes = cols.slice(5).map(c => c.label ? c.label.trim() : '').filter(name => name !== '');
+  // Cols 0-4 = Service Category, Service Task, Labor, Parts, Mobile Service Charge
+  // Cols 5+ = bike type names
+  const bikeTypes = cols.slice(5)
+    .map(c => c.label ? c.label.trim() : '')
+    .filter(name => name !== '');
   if (bikeTypes.length === 0) throw new Error('No bike types found in headers');
   return bikeTypes;
 }
@@ -1318,7 +1324,16 @@ function copyQuote(num, grand) {
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-loadAllData();
+// Safety net: if data hasn't loaded in 10s, force fallback
+const _safetyTimer = setTimeout(() => {
+  if (BIKE_TYPES.length === 0) {
+    console.warn('Safety fallback triggered');
+    document.getElementById('dataStatus').textContent = 'Using offline data';
+    loadFallbackData();
+    buildBikeGrid();
+  }
+}, 10000);
+loadAllData().finally(() => clearTimeout(_safetyTimer));
 
 // ── SEND COPY ─────────────────────────────────────────────────────────────────
 function showSendOptions(quoteNum, grand) {
