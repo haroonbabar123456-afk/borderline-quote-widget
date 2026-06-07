@@ -3,1413 +3,458 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Borderline Bikes — Instant Quote Builder</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Borderline Bikes — Service Quote Estimator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #111111;
-    --dark: #e8711a;
-    --card: #ffffff;
-    --border: #e0e0e0;
-    --orange: #e8711a;
-    --orange-dim: #c05c10;
-    --orange-glow: rgba(232,113,26,0.10);
-    --white: #111111;
-    --muted: #666666;
-    --green: #2ecc71;
-    --text: #333333;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body { background: #f4f4f4 !important; }
-  .left-panel { background: #ffffff; }
-  .right-panel { background: #f9f9f9 !important; border-left: 1px solid #e0e0e0; }
+  .bb-wizard-wrap { font-family: 'DM Sans', sans-serif; background: #f5f3ef; min-height: 100vh; padding: 40px 16px 80px; }
+  .bb-wizard-inner { max-width: 720px; margin: 0 auto; background: #fff; border-radius: 4px; box-shadow: 0 2px 40px rgba(0,0,0,0.10); overflow: hidden; }
 
-  /* Bike buttons */
-  .bike-btn { background: #ffffff; border-color: #e0e0e0; }
-  .bike-btn:hover, .bike-btn.selected { background: rgba(232,113,26,0.08); border-color: #e8711a; }
-  .bike-label { color: #111111; }
-  .bike-count { color: #888; }
+  .bb-header { background: #1a1a1a; color: #fff; padding: 32px 40px 28px; }
+  .bb-logo-line { font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 4px; color: #e8682a; margin-bottom: 8px; }
+  .bb-title { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 2px; color: #fff; line-height: 1; margin-bottom: 20px; }
+  .bb-progress-track { background: #333; height: 4px; border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+  .bb-progress-fill { height: 100%; background: #e8682a; border-radius: 2px; transition: width 0.4s ease; width: 16.66%; }
+  .bb-step-label { font-size: 12px; color: #888; letter-spacing: 1px; }
+  .bb-status { font-size: 11px; color: #666; margin-top: 6px; letter-spacing: 1px; }
 
-  /* Steps */
-  .step-title { color: #111111; }
-  .step-sub { color: #666; }
-
-  /* Category headers */
-  .category-block { border-color: #e0e0e0; }
-  .category-header { background: #f7f7f7; }
-  .category-header:hover { background: #efefef; }
-  .cat-name { color: #111111; }
-  .cat-arrow { color: #666; }
-
-  /* Service items — fix dark background on selected/open */
-  .services-list { background: #ffffff; }
-  .service-item { background: #ffffff !important; }
-  .service-item:hover { background: #f9f9f9 !important; }
-  .service-item.selected { background: rgba(232,113,26,0.08) !important; }
-  .service-check { border-color: #ccc; background: #fff; }
-  .service-item.selected .service-check { background: #e8711a; border-color: #e8711a; }
-  .service-task { color: #222222 !important; }
-  .service-parts { color: #888 !important; }
-  .price-labor { color: #e8711a !important; }
-  .price-label { color: #888 !important; }
-
-  /* Quote panel */
-  .quote-title { color: #111111; }
-  .quote-sub { color: #666; }
-  .qi-name { color: #222 !important; }
-  .qi-price { color: #111 !important; }
-  .qi-remove { color: #aaa; }
-  .qi-remove:hover { color: #e74c3c; }
-  .br-label { color: #666; }
-  .br-val { color: #222; }
-  .bt-label { color: #111; }
-  .bt-val { color: #e8711a; }
-  .quote-item { border-bottom-color: #f0f0f0; }
-  .quote-breakdown { border-top-color: #e0e0e0; }
-  .breakdown-total { border-top-color: #e8711a; }
-
-  /* Mobile toggle */
-  .mobile-toggle { background: #ffffff; border-color: #e0e0e0; }
-  .mobile-toggle.active { background: rgba(232,113,26,0.08); border-color: #e8711a; }
-  .mt-info h4 { color: #111; }
-  .mt-info p { color: #888; }
-  .mt-switch { background: #ddd; }
-  .mobile-toggle.active .mt-switch { background: #e8711a; }
-
-  /* Service location toggle */
-  .service-toggle { border-color: #e0e0e0; }
-  .toggle-btn { color: #666; background: transparent; }
-  .toggle-btn.active { background: #e8711a; color: #fff; }
-  .toggle-btn:hover:not(.active) { color: #111; background: #f5f5f5; }
-
-  /* Quote badge */
-  .quote-bike-badge { background: rgba(232,113,26,0.08); border-color: #e8711a; color: #e8711a; }
-
-  /* CTA buttons */
-  .cta-btn { background: #e8711a; color: #fff; }
-  .clear-btn { color: #666; border-color: #ddd; }
-  .clear-btn:hover { color: #111; border-color: #999; }
-
-  /* Quote empty state */
-  .quote-empty-text { color: #888; }
-
-  /* Selected count badge */
-  .cat-selected-count { color: #e8711a; background: rgba(232,113,26,0.1); }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    background: var(--black);
-    color: var(--text);
-    font-family: 'Barlow', sans-serif;
-    min-height: 100vh;
-  }
-
-  /* ── HEADER ── */
-  header {
-    background: transparent;
-    border: none;
-    padding: 20px 40px 8px;
-    display: flex;
-    align-items: center;
-  }
-  .logo-wrap { display: none !important; }
-  .header-right { display: none !important; }
-  .logo-wrap {
-    flex-shrink: 0;
-    display: flex; align-items: center;
-  }
-  .brand-logo { border-radius:0 !important; background:none !important;
-    height: 52px; width: auto;
-    filter: brightness(1);
-    display: block;
-  }
-  .brand h1 { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:22px; letter-spacing:2px; color:var(--white); text-transform:uppercase; }
-  .brand p { font-size:11px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
-  .header-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
-  .status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-  .status-text { font-size:11px; color:var(--muted); letter-spacing:1px; }
-
-  /* ── MAIN LAYOUT ── */
-  .layout { display:grid; grid-template-columns:1fr 340px; gap:0; height:800px; max-height:800px; overflow:hidden; }
-
-  /* ── LEFT PANEL ── */
-  .left-panel { padding:32px 40px; border-right:1px solid var(--border); overflow-y:auto; height:800px; }
-
-  /* ── STEPS ── */
-  .step { margin-bottom:36px; }
-  .step-header {
-    display:flex; align-items:center; gap:14px; margin-bottom:20px;
-  }
-  .step-num {
-    width:32px; height:32px; border-radius:50%;
-    background:var(--orange); color:#fff;
-    font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:16px;
-    display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
-  }
-  .step-num.inactive { background:var(--border); color:var(--muted); }
-  .step-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px; letter-spacing:1px; text-transform:uppercase; color:var(--white); }
-  .step-sub { font-size:12px; color:var(--muted); margin-top:2px; }
-
-  /* ── BIKE TYPE GRID ── */
-  .bike-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-  .bike-btn {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius:10px;
-    padding:16px 12px;
-    cursor:pointer;
-    text-align:center;
-    transition: all 0.2s;
-    position:relative;
-    overflow:hidden;
-  }
-  .bike-btn:hover { border-color:var(--orange); background:var(--orange-glow); }
-  .bike-btn.selected { border-color:var(--orange); background:var(--orange-glow); }
-  .bike-btn.selected::after {
-    content:'✓';
-    position:absolute; top:6px; right:8px;
-    font-size:12px; color:var(--orange); font-weight:700;
-  }
-  .bike-icon { font-size:28px; margin-bottom:6px; }
-  .bike-label { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--white); }
-  .bike-count { font-size:11px; color:var(--muted); margin-top:2px; }
-
-  /* ── SERVICE TYPE TOGGLE ── */
-  .service-toggle {
-    display:flex; gap:0; border:1.5px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content;
-  }
-  .toggle-btn {
-    padding:10px 24px; cursor:pointer; border:none; background:transparent;
-    font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:14px;
-    letter-spacing:1px; text-transform:uppercase; color:var(--muted);
-    transition:all 0.2s;
-  }
-  .toggle-btn.active { background:var(--orange); color:#fff; }
-  .toggle-btn:hover:not(.active) { color:var(--white); background:rgba(255,255,255,0.05); }
-
-  /* ── CATEGORY SECTIONS ── */
-  .categories-area { margin-top:20px; }
-  .loading-state {
-    display:flex; flex-direction:column; align-items:center; gap:12px;
-    text-align:center; padding:40px;
-    font-family:'Barlow Condensed',sans-serif; font-size:16px;
-    color:var(--muted); letter-spacing:2px; text-transform:uppercase;
-  }
-  .spinner {
-    width:32px; height:32px; border:3px solid var(--border);
-    border-top-color:var(--orange); border-radius:50%;
-    animation:spin 0.8s linear infinite; margin:0 auto 12px;
-  }
-  @keyframes spin { to{transform:rotate(360deg)} }
-
-  .category-block { margin-bottom:8px; border-radius:10px; overflow:hidden; border:1px solid var(--border); }
-  .category-header {
-    padding:14px 18px; background:var(--card);
-    display:flex; align-items:center; justify-content:space-between;
-    cursor:pointer; user-select:none;
-    transition:background 0.15s;
-  }
-  .category-header:hover { background:#1e2330; }
-  .cat-left { display:flex; align-items:center; gap:10px; }
-  .cat-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:15px; letter-spacing:0.5px; text-transform:uppercase; color:var(--white); }
-  .cat-count { font-size:11px; color:var(--muted); background:var(--border); padding:2px 8px; border-radius:20px; }
-  .cat-selected-count { font-size:11px; color:var(--orange); background:var(--orange-glow); padding:2px 8px; border-radius:20px; display:none; }
-  .cat-selected-count.visible { display:inline; }
-  .cat-arrow { color:var(--muted); font-size:12px; transition:transform 0.2s; }
-  .cat-arrow.open { transform:rotate(180deg); }
-
-  .services-list { background:#13161d; border-top:1px solid var(--border); display:none; }
-  .services-list.open { display:block; }
-
-  .service-item {
-    display:flex; align-items:center; gap:14px;
-    padding:12px 18px; border-bottom:1px solid rgba(255,255,255,0.04);
-    cursor:pointer; transition:background 0.15s;
-  }
-  .service-item:last-child { border-bottom:none; }
-  .service-item:hover { background:rgba(255,255,255,0.03); }
-  .service-item.selected { background:var(--orange-glow); }
-
-  .service-check {
-    width:18px; height:18px; border-radius:4px;
-    border:1.5px solid var(--border); flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    transition:all 0.15s;
-  }
-  .service-item.selected .service-check {
-    background:var(--orange); border-color:var(--orange);
-  }
-  .service-item.selected .service-check::after { content:'✓'; font-size:11px; color:#fff; font-weight:700; }
-
-  .service-info { flex:1; }
-  .service-task { font-size:13px; color:var(--white); line-height:1.4; }
-  .service-parts { font-size:11px; color:var(--muted); margin-top:2px; }
-  .service-price {
-    text-align:right; flex-shrink:0;
-  }
-  .price-labor { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px; color:var(--orange); }
-  .price-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
-
-  /* ── RIGHT PANEL (QUOTE) ── */
-  .right-panel {
-    background:var(--dark);
-    padding:32px 28px;
-    position:sticky;
-    top:0;
-    height:800px;
-    overflow-y:auto;
-    display:flex;
-    flex-direction:column;
-  }
-
-  .quote-title {
-    font-family:'Barlow Condensed',sans-serif; font-weight:800;
-    font-size:24px; letter-spacing:2px; text-transform:uppercase;
-    color:var(--white); margin-bottom:4px;
-  }
-  .quote-sub { font-size:12px; color:var(--muted); margin-bottom:24px; }
-
-  .quote-bike-badge {
-    display:inline-flex; align-items:center; gap:8px;
-    background:var(--orange-glow); border:1px solid var(--orange);
-    border-radius:6px; padding:6px 14px; margin-bottom:20px;
-    font-family:'Barlow Condensed',sans-serif; font-weight:700;
-    font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--orange);
-  }
-
-  .quote-empty {
-    flex:1; display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    text-align:center; gap:12px;
-  }
-  .quote-empty-icon { font-size:48px; opacity:0.3; }
-  .quote-empty-text { font-size:13px; color:var(--muted); line-height:1.6; }
-
-  .quote-items { flex:1; margin-bottom:20px; }
-  .quote-item {
-    display:flex; justify-content:space-between; align-items:flex-start;
-    padding:10px 0; border-bottom:1px solid var(--border); gap:12px;
-  }
-  .qi-name { font-size:12px; color:var(--text); line-height:1.4; flex:1; }
-  .qi-price { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:15px; color:var(--white); flex-shrink:0; }
-  .qi-remove {
-    color:var(--muted); cursor:pointer; font-size:14px;
-    flex-shrink:0; transition:color 0.15s; padding:0 4px;
-  }
-  .qi-remove:hover { color:#e74c3c; }
-
-  .mobile-toggle {
-    background:var(--card); border:1.5px solid var(--border);
-    border-radius:10px; padding:14px 16px;
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:16px; cursor:pointer; transition:all 0.2s;
-  }
-  .mobile-toggle:hover { border-color:var(--orange); }
-  .mobile-toggle.active { border-color:var(--orange); background:var(--orange-glow); }
-  .mt-left { display:flex; align-items:center; gap:10px; }
-  .mt-icon { font-size:20px; }
-  .mt-info h4 { font-size:13px; font-weight:600; color:var(--white); }
-  .mt-info p { font-size:11px; color:var(--muted); }
-  .mt-switch {
-    width:36px; height:20px; background:var(--border);
-    border-radius:10px; position:relative; transition:background 0.2s;
-    flex-shrink:0;
-  }
-  .mobile-toggle.active .mt-switch { background:var(--orange); }
-  .mt-switch::after {
-    content:''; position:absolute; top:3px; left:3px;
-    width:14px; height:14px; border-radius:50%; background:#fff;
-    transition:transform 0.2s;
-  }
-  .mobile-toggle.active .mt-switch::after { transform:translateX(16px); }
-
-  .quote-breakdown { border-top:1px solid var(--border); padding-top:16px; }
-  .breakdown-row { display:flex; justify-content:space-between; padding:6px 0; }
-  .br-label { font-size:13px; color:var(--muted); }
-  .br-val { font-size:13px; color:var(--text); font-weight:500; }
-  .breakdown-total {
-    display:flex; justify-content:space-between; padding:14px 0 0;
-    border-top:2px solid var(--orange); margin-top:8px;
-  }
-  .bt-label { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:18px; text-transform:uppercase; color:var(--white); letter-spacing:1px; }
-  .bt-val { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:28px; color:var(--orange); }
-
-  .cta-btn {
-    margin-top:20px; width:100%;
-    background:var(--orange); color:#fff; border:none;
-    border-radius:10px; padding:16px;
-    font-family:'Barlow Condensed',sans-serif; font-weight:800;
-    font-size:17px; letter-spacing:2px; text-transform:uppercase;
-    cursor:pointer; transition:all 0.2s;
-  }
-  .cta-btn:hover { background:var(--orange-dim); transform:translateY(-1px); box-shadow:0 6px 24px rgba(232,113,26,0.3); }
-  .cta-btn:disabled { opacity:0.3; cursor:not-allowed; transform:none; box-shadow:none; }
-
-  .clear-btn {
-    margin-top:8px; width:100%;
-    background:transparent; color:var(--muted); border:1px solid var(--border);
-    border-radius:10px; padding:10px;
-    font-family:'Barlow Condensed',sans-serif; font-weight:600;
-    font-size:13px; letter-spacing:1px; text-transform:uppercase;
-    cursor:pointer; transition:all 0.2s;
-  }
-  .clear-btn:hover { border-color:var(--muted); color:var(--white); }
-
-  /* ── NOTE BANNER ── */
-  .note-banner {
-    background: rgba(232,113,26,0.08); border:1px solid rgba(232,113,26,0.25);
-    border-radius:8px; padding:10px 14px; margin-top:12px;
-    font-size:11px; color:var(--muted); line-height:1.6;
-  }
-
-  /* ── DISABLED OVERLAY ── */
-  .step-disabled { opacity:0.35; pointer-events:none; }
-
-  /* ── TOAST ── */
-  .toast {
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
-    background:var(--green); color:#fff;
-    font-family:'Barlow Condensed',sans-serif; font-weight:700;
-    font-size:14px; letter-spacing:1px; text-transform:uppercase;
-    padding:12px 24px; border-radius:8px;
-    transition:transform 0.3s; z-index:999;
-  }
-  .toast.show { transform:translateX(-50%) translateY(0); }
-
-  /* ── QUOTE MODAL ── */
-  #quoteModal {
-    position:fixed; inset:0; background:rgba(0,0,0,0.85);
-    display:flex; align-items:center; justify-content:center;
-    z-index:1000; opacity:0; transition:opacity 0.3s;
-    padding:20px;
-  }
-  #quoteModal.visible { opacity:1; }
-  .qm-box {
-    background:#fff; color:#111; border-radius:14px;
-    width:100%; max-width:720px; max-height:90vh;
-    overflow-y:auto; transform:translateY(20px);
-    transition:transform 0.3s; box-shadow:0 24px 80px rgba(0,0,0,0.5);
-  }
-  #quoteModal.visible .qm-box { transform:translateY(0); }
-  .qm-header {
-    background:#111419; padding:28px 32px;
-    display:flex; justify-content:space-between; align-items:flex-start;
-    border-radius:14px 14px 0 0; border-bottom:3px solid var(--orange);
-  }
-  .qm-logo { display:flex; align-items:center; gap:14px; }
-  /* qm-hex removed */
-  
-  .qm-brand { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:18px; color:#fff; letter-spacing:1px; text-transform:uppercase; }
-  .qm-tagline { font-size:11px; color:#8a8f9e; letter-spacing:1px; margin-top:2px; }
-  .qm-contact { font-size:11px; color:#8a8f9e; margin-top:4px; }
-  .qm-meta { text-align:right; }
-  .qm-num { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px; color:var(--orange); letter-spacing:1px; }
-  .qm-date { font-size:12px; color:#8a8f9e; margin-top:4px; }
-  .qm-valid { font-size:11px; color:#8a8f9e; margin-top:2px; }
-  .qm-body { padding:28px 32px; }
-  .qm-section-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:2px; color:#888; margin-bottom:12px; }
-  .qm-badges { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
-  .qm-badge { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; }
-  .qm-badge.bike { background:#fff3e8; color:#e8711a; border:1px solid #fcd9b5; }
-  .qm-badge.type { background:#f0f4ff; color:#3b5bdb; border:1px solid #c5d0ff; }
-  .qm-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
-  .qm-table th { background:#f7f8fa; padding:10px 14px; text-align:left; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#555; border-bottom:2px solid #e5e7eb; }
-  .qm-table th:last-child, .qm-table td:last-child { text-align:right; }
-  .cat-row td { padding:10px 14px 4px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#e8711a; background:#fffaf6; border-top:1px solid #ffe8d0; }
-  .svc-row td { padding:9px 14px; font-size:13px; color:#333; border-bottom:1px solid #f3f4f6; vertical-align:top; }
-  .svc-row td:last-child { font-weight:600; color:#111; white-space:nowrap; }
-  .qm-totals { border-top:2px solid #e5e7eb; padding-top:16px; margin-bottom:16px; }
-  .qm-total-row { display:flex; justify-content:space-between; padding:6px 0; font-size:14px; color:#444; }
-  .qm-total-row.parts-note span:last-child { color:#e8711a; font-style:italic; }
-  .qm-total-row.grand { border-top:2px solid #111; margin-top:8px; padding-top:12px; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:20px; color:#111; }
-  .qm-total-row.grand span:last-child { color:#e8711a; font-size:24px; }
-  .qm-disclaimer { background:#f7f8fa; border-left:3px solid #ddd; padding:10px 14px; font-size:12px; color:#777; line-height:1.6; border-radius:0 6px 6px 0; margin-bottom:10px; }
-  .qm-actions { padding:20px 32px 28px; display:flex; gap:10px; flex-wrap:wrap; border-top:1px solid #e5e7eb; }
-  .qm-btn { padding:12px 22px; border-radius:8px; border:none; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase; transition:all 0.2s; }
-  .qm-btn.primary { background:#e8711a; color:#fff; }
-  .qm-btn.primary:hover { background:#c05c10; }
-  .qm-btn.secondary { background:#f0f4ff; color:#3b5bdb; border:1px solid #c5d0ff; }
-  .qm-btn.ghost { background:transparent; color:#888; border:1px solid #ddd; }
-  .qm-btn.ghost:hover { background:#f5f5f5; color:#333; }
-  @media print {
-    @page { margin: 12mm; size: A4; }
-    html, body {
-      margin: 0 !important; padding: 0 !important;
-      height: auto !important; overflow: visible !important;
-      background: #fff !important;
-    }
-    /* Hide everything on the page */
-    body > *:not(#quoteModal) { display: none !important; }
-    /* Hide the dark overlay backdrop, show only the box */
-    #quoteModal {
-      display: block !important;
-      position: static !important;
-      background: none !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      opacity: 1 !important;
-      height: auto !important;
-      overflow: visible !important;
-    }
-    .qm-box {
-      box-shadow: none !important;
-      max-height: none !important;
-      border-radius: 0 !important;
-      transform: none !important;
-      width: 100% !important;
-      height: auto !important;
-      overflow: visible !important;
-      margin: 0 !important;
-    }
-    /* Tighten spacing */
-    .qm-header { padding: 14px 20px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .qm-body { padding: 14px 20px !important; }
-    .qm-badges { margin-bottom: 10px !important; }
-    .qm-section-title { margin-bottom: 8px !important; }
-    .qm-table th, .svc-row td { padding: 6px 10px !important; }
-    .cat-row td { padding: 6px 10px 3px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .qm-totals { padding-top: 10px !important; margin-bottom: 10px !important; }
-    .qm-total-row { padding: 3px 0 !important; }
-    .qm-disclaimer { padding: 8px 12px !important; margin-bottom: 8px !important; }
-    .qm-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .qm-total-row.grand { padding-top: 8px !important; }
-    .qm-total-row.grand span:last-child { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    /* Hide interactive elements */
-    .no-print, .qm-actions { display: none !important; }
-  }
-
-  @media(max-width:600px) {
-    .layout { grid-template-columns:1fr; }
-    .right-panel { position:static; height:auto; }
-    .bike-grid { grid-template-columns:repeat(3,1fr); }
-    .left-panel { padding:20px; }
-    header { padding:16px 20px; }
-  }
-
-  /* ═══════════════════════════════════════════════════
-     THEME 1 LIGHT — FULL AUDIT OVERRIDES
-     Force every element to light-theme appropriate colors
-  ═══════════════════════════════════════════════════ */
-
-  /* Base */
-  body { background: #f2f2f2 !important; color: #111 !important; }
-  .left-panel { background: #ffffff !important; }
-  .right-panel { background: #fafafa !important; border-left: 1px solid #e0e0e0 !important; }
-
-  header { background: transparent !important; border: none !important; }
-  .brand h1 { color: #111111 !important; }
-  .brand p { color: #666666 !important; }
-
-  /* Step numbers */
-  .step-num { background: #e8711a !important; color: #fff !important; }
-  .step-num.inactive { background: #ddd !important; color: #999 !important; }
-  .step-title { color: #111111 !important; }
-  .step-sub { color: #666666 !important; }
-
-  /* Bike grid */
-  .bike-btn { background: #ffffff !important; border: 1.5px solid #e0e0e0 !important; }
-  .bike-btn:hover { background: #fff7f2 !important; border-color: #e8711a !important; }
-  .bike-btn.selected { background: #fff7f2 !important; border-color: #e8711a !important; }
-  .bike-btn.selected::after { color: #e8711a !important; }
-  .bike-label { color: #111111 !important; }
-  .bike-count { color: #888888 !important; }
-
-  /* Service location toggle */
-  .service-toggle { border: 1.5px solid #e0e0e0 !important; }
-  .toggle-btn { color: #666 !important; background: transparent !important; }
-  .toggle-btn.active { background: #e8711a !important; color: #ffffff !important; }
-  .toggle-btn:hover:not(.active) { color: #111 !important; background: #f5f5f5 !important; }
-
-  /* Category blocks */
-  .category-block { border: 1px solid #e0e0e0 !important; }
-  .category-header { background: #f5f5f5 !important; }
-  .category-header:hover { background: #eeeeee !important; }
-  .cat-name { color: #111111 !important; }
-  .cat-count { background: #e5e5e5 !important; color: #555 !important; }
-  .cat-selected-count { color: #e8711a !important; background: rgba(232,113,26,0.1) !important; }
-  .cat-arrow { color: #888 !important; }
-
-  /* Services list */
-  .services-list { background: #ffffff !important; border-top: 1px solid #eee !important; }
-  .service-item { background: #ffffff !important; border-bottom: 1px solid #f5f5f5 !important; }
-  .service-item:hover { background: #fafafa !important; }
-  .service-item.selected { background: #fff7f2 !important; }
-  .service-check { border: 1.5px solid #ccc !important; background: #fff !important; }
-  .service-item.selected .service-check { background: #e8711a !important; border-color: #e8711a !important; }
-  .service-task { color: #222222 !important; }
-  .service-parts { color: #888888 !important; }
-  .price-labor { color: #e8711a !important; }
-  .price-label { color: #999 !important; }
+  .bb-step { display: none; padding: 36px 40px 40px; }
+  .bb-step.active { display: block; }
+  .bb-step-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
+  .bb-step-num { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: #e8e4dc; line-height: 1; }
+  .bb-step-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; color: #1a1a1a; }
+  .bb-step-desc { font-size: 14px; color: #666; margin-bottom: 28px; line-height: 1.6; }
 
   /* Loading state */
-  .loading-state { color: #888 !important; }
-  .spinner { border-color: #eee !important; border-top-color: #e8711a !important; }
+  .bb-loading { text-align: center; padding: 40px 20px; color: #888; }
+  .bb-spinner { width: 32px; height: 32px; border: 3px solid #e8e4dc; border-top-color: #e8682a; border-radius: 50%; animation: bb-spin 0.8s linear infinite; margin: 0 auto 14px; }
+  @keyframes bb-spin { to { transform: rotate(360deg); } }
 
-  /* Quote panel */
-  .quote-title { color: #111111 !important; }
-  .quote-sub { color: #666666 !important; }
-  .quote-bike-badge { background: #fff7f2 !important; border-color: #e8711a !important; color: #e8711a !important; }
-  .quote-empty-icon { opacity: 0.2 !important; }
-  .quote-empty-text { color: #888 !important; }
-  .quote-item { border-bottom: 1px solid #f0f0f0 !important; }
-  .qi-name { color: #222222 !important; }
-  .qi-price { color: #111111 !important; font-weight: 700 !important; }
-  .qi-remove { color: #bbb !important; }
-  .qi-remove:hover { color: #e74c3c !important; }
+  .bb-tile-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 32px; }
+  @media(max-width: 560px) { .bb-tile-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media(max-width: 380px) { .bb-tile-grid { grid-template-columns: repeat(2, 1fr); } }
+  .bb-tile { border: 2px solid #e8e4dc; border-radius: 6px; padding: 16px 8px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s; user-select: none; }
+  .bb-tile input { display: none; }
+  .bb-tile:hover { border-color: #ccc; transform: translateY(-1px); }
+  .bb-tile.selected { border-color: #e8682a; background: #fff7f3; }
+  .bb-tile-icon { font-size: 24px; margin-bottom: 6px; }
+  .bb-tile-label { font-size: 12px; font-weight: 600; color: #333; }
 
-  /* Mobile toggle */
-  .mobile-toggle { background: #ffffff !important; border: 1.5px solid #e0e0e0 !important; }
-  .mobile-toggle:hover { border-color: #e8711a !important; }
-  .mobile-toggle.active { background: #fff7f2 !important; border-color: #e8711a !important; }
-  .mt-info h4 { color: #111 !important; }
-  .mt-info p { color: #888 !important; }
-  .mt-switch { background: #ddd !important; }
-  .mobile-toggle.active .mt-switch { background: #e8711a !important; }
+  .bb-search-wrap { margin-bottom: 16px; }
+  .bb-search-wrap input { width: 100%; padding: 10px 14px; border: 2px solid #e8e4dc; border-radius: 4px; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
+  .bb-search-wrap input:focus { border-color: #e8682a; }
 
-  /* Quote breakdown */
-  .quote-breakdown { border-top: 1px solid #e0e0e0 !important; }
-  .breakdown-row { border: none !important; }
-  .br-label { color: #666666 !important; }
-  .br-val { color: #222222 !important; }
-  .breakdown-total { border-top: 2px solid #e8711a !important; }
-  .bt-label { color: #111111 !important; }
-  .bt-val { color: #e8711a !important; }
+  .bb-services-list { max-height: 420px; overflow-y: auto; border: 1px solid #e8e4dc; border-radius: 4px; margin-bottom: 28px; }
+  .bb-cat-header { padding: 8px 14px; background: #f5f3ef; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #888; border-bottom: 1px solid #e8e4dc; position: sticky; top: 0; z-index: 1; }
+  .bb-service-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #f0ece6; cursor: pointer; transition: background 0.1s; }
+  .bb-service-item:last-child { border-bottom: none; }
+  .bb-service-item:hover { background: #fffaf6; }
+  .bb-service-item.checked { background: #fff7f3; }
+  .bb-service-checkbox { width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, background 0.15s; font-size: 11px; color: #fff; }
+  .bb-service-item.checked .bb-service-checkbox { background: #e8682a; border-color: #e8682a; }
+  .bb-service-info { flex: 1; }
+  .bb-service-name { font-size: 13px; color: #222; line-height: 1.4; }
+  .bb-service-price { font-size: 12px; color: #555; margin-top: 2px; }
+  .bb-parts-badge { font-size: 10px; background: #fef3c7; color: #92400e; padding: 1px 6px; border-radius: 20px; font-weight: 600; margin-left: 6px; }
+  .bb-no-services { padding: 32px; text-align: center; color: #888; font-size: 14px; }
 
-  /* Note banner */
-  .note-banner { background: #fff7f2 !important; border-left: 3px solid #e8711a !important; color: #888 !important; }
+  .bb-radio-stack { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .bb-radio-card { display: flex; align-items: flex-start; gap: 14px; border: 2px solid #e8e4dc; border-radius: 6px; padding: 18px 20px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .bb-radio-card input { display: none; }
+  .bb-radio-card.selected { border-color: #e8682a; background: #fff7f3; }
+  .bb-radio-content { display: flex; flex-direction: column; gap: 4px; }
+  .bb-radio-content strong { font-size: 14px; color: #1a1a1a; }
+  .bb-radio-content span { font-size: 13px; color: #666; }
+  .bb-radio-dot { width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 50%; flex-shrink: 0; margin-top: 2px; transition: border-color 0.15s; display: flex; align-items: center; justify-content: center; }
+  .bb-radio-card.selected .bb-radio-dot { border-color: #e8682a; background: radial-gradient(circle at center, #e8682a 40%, transparent 40%); }
 
-  /* Buttons */
-  .cta-btn { background: #e8711a !important; color: #ffffff !important; }
-  .cta-btn:hover { background: #c05c10 !important; }
-  .clear-btn { background: transparent !important; color: #888 !important; border: 1px solid #ddd !important; }
-  .clear-btn:hover { color: #333 !important; border-color: #999 !important; }
+  .bb-field { margin-bottom: 20px; }
+  .bb-field label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px; }
+  .bb-field input[type="email"], .bb-field input[type="text"], .bb-field input[type="tel"], .bb-field textarea { width: 100%; padding: 10px 14px; border: 2px solid #e8e4dc; border-radius: 4px; font-size: 14px; font-family: 'DM Sans', sans-serif; color: #1a1a1a; outline: none; transition: border-color 0.15s; resize: vertical; }
+  .bb-field input:focus, .bb-field textarea:focus { border-color: #e8682a; }
+  .bb-optional { font-size: 11px; font-weight: 400; color: #999; }
 
-  /* Toast */
-  .toast { background: #e8711a !important; }
+  .bb-quote-box { border: 2px solid #e8e4dc; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+  .bb-quote-meta { background: #f5f3ef; padding: 12px 18px; font-size: 13px; color: #555; border-bottom: 1px solid #e8e4dc; display: flex; gap: 20px; flex-wrap: wrap; }
+  .bb-quote-meta span { display: flex; align-items: center; gap: 6px; }
+  .bb-quote-meta strong { color: #1a1a1a; }
+  .bb-quote-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .bb-quote-table th { text-align: left; padding: 10px 18px; background: #1a1a1a; color: #fff; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  .bb-quote-table th:last-child { text-align: right; }
+  .bb-quote-table td { padding: 11px 18px; border-bottom: 1px solid #f0ece6; color: #333; }
+  .bb-quote-table td:last-child { text-align: right; white-space: nowrap; }
+  .bb-quote-table tfoot td { border-top: 2px solid #1a1a1a; border-bottom: none; }
+  .bb-total-row td { padding: 14px 18px; font-size: 16px; background: #fffaf6; }
+  .bb-total-row #bb-grand-total { color: #e8682a; }
+  .bb-parts-note { padding: 12px 18px; background: #fffbeb; border-top: 1px solid #fde68a; font-size: 12px; color: #92400e; }
 
+  .bb-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 32px; gap: 12px; }
+  .bb-btn-primary, .bb-btn-secondary, .bb-btn-submit { padding: 12px 28px; border-radius: 4px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s, transform 0.1s; }
+  .bb-btn-primary { background: #1a1a1a; color: #fff; }
+  .bb-btn-primary:hover { background: #333; transform: translateY(-1px); }
+  .bb-btn-secondary { background: #fff; color: #1a1a1a; border: 2px solid #1a1a1a; }
+  .bb-btn-secondary:hover { background: #f5f3ef; }
+  .bb-btn-submit { background: #e8682a; color: #fff; flex: 1; max-width: 320px; text-align: center; }
+  .bb-btn-submit:hover { background: #d45e22; transform: translateY(-1px); }
 
-  /* ── RIGHT QUOTE PANEL — DARK ── */
-  .right-panel { background: #111419 !important; border-left: 1px solid #2a2f3a !important; }
-  .quote-title { color: #f5f5f5 !important; }
-  .quote-sub { color: #8a8f9e !important; }
-  .quote-bike-badge { background: rgba(232,113,26,0.15) !important; border-color: #e8711a !important; color: #e8711a !important; }
-  .quote-empty-text { color: #8a8f9e !important; }
-  .quote-item { border-bottom: 1px solid #2a2f3a !important; }
-  .qi-name { color: #d4d8e2 !important; }
-  .qi-price { color: #f5f5f5 !important; }
-  .qi-remove { color: #555 !important; }
-  .qi-remove:hover { color: #e74c3c !important; }
-  .mobile-toggle { background: #181c23 !important; border: 1.5px solid #2a2f3a !important; }
-  .mobile-toggle:hover { border-color: #e8711a !important; }
-  .mobile-toggle.active { background: rgba(232,113,26,0.15) !important; border-color: #e8711a !important; }
-  .mt-info h4 { color: #f5f5f5 !important; }
-  .mt-info p { color: #8a8f9e !important; }
-  .mt-switch { background: #2a2f3a !important; }
-  .mobile-toggle.active .mt-switch { background: #e8711a !important; }
-  .quote-breakdown { border-top: 1px solid #2a2f3a !important; }
-  .br-label { color: #8a8f9e !important; }
-  .br-val { color: #d4d8e2 !important; }
-  .breakdown-total { border-top: 2px solid #e8711a !important; }
-  .bt-label { color: #f5f5f5 !important; }
-  .bt-val { color: #e8711a !important; }
-  .note-banner { background: rgba(232,113,26,0.08) !important; border-left: 3px solid rgba(232,113,26,0.3) !important; color: #8a8f9e !important; }
-  .cta-btn { background: #e8711a !important; color: #fff !important; }
-  .clear-btn { background: transparent !important; color: #8a8f9e !important; border: 1px solid #2a2f3a !important; }
-  .clear-btn:hover { color: #f5f5f5 !important; border-color: #8a8f9e !important; }
+  .bb-success { text-align: center; padding: 20px 0 20px; }
+  .bb-success-icon { width: 72px; height: 72px; background: #e8682a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; margin: 0 auto 24px; }
+  .bb-success h2 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; color: #1a1a1a; margin-bottom: 12px; }
+  .bb-success p { font-size: 14px; color: #555; line-height: 1.6; max-width: 480px; margin: 0 auto 24px; }
+  .bb-success-ref { font-size: 12px; color: #999; font-family: monospace; background: #f5f3ef; display: inline-block; padding: 6px 16px; border-radius: 4px; }
 
+  @keyframes bb-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .bb-shake { animation: bb-shake 0.3s ease; }
+  .bb-services-list::-webkit-scrollbar { width: 6px; }
+  .bb-services-list::-webkit-scrollbar-track { background: #f5f3ef; }
+  .bb-services-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo-wrap">
-    <img src="https://www.borderlinebikes.com/cdn/shop/files/hate_bike_shop_large_image_200_480x.png?v=1613572120" 
-         alt="I Hate Bike Shops" class="brand-logo">
-  </div>
-  <div class="brand">
-    <h1>Instant Quote</h1>
-    <p>The Bike Shop Alternative</p>
-  </div>
-  <div class="header-right">
-    <div class="status-dot"></div>
-    <span class="status-text" id="dataStatus">Loading data...</span>
-  </div>
-</header>
+<div class="bb-wizard-wrap">
+  <div class="bb-wizard-inner">
 
-<div class="layout">
-  <!-- LEFT -->
-  <div class="left-panel">
-
-    <!-- STEP 1: BIKE TYPE -->
-    <div class="step" id="step1">
-      <div class="step-header">
-        <div class="step-num">1</div>
-        <div>
-          <div class="step-title">Select Your Bike Type</div>
-          <div class="step-sub">Choose the type that best matches your bike</div>
-        </div>
-      </div>
-      <div class="bike-grid" id="bikeGrid">
-        <!-- populated by JS -->
-      </div>
-    </div>
-    <!-- STEP 3: SERVICES -->
-    <div class="step step-disabled" id="step3">
-      <div class="step-header">
-        <div class="step-num inactive" id="step3num">2</div>
-        <div>
-          <div class="step-title">Select Services</div>
-          <div class="step-sub">Choose one or more services — quote updates live</div>
-        </div>
-      </div>
-      <div class="categories-area" id="categoriesArea">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          Select a bike type to see available services
-        </div>
-      </div>
+    <div class="bb-header">
+      <div class="bb-logo-line">BORDERLINE BIKES</div>
+      <h1 class="bb-title">Service Quote Estimator</h1>
+      <div class="bb-progress-track"><div class="bb-progress-fill" id="bb-progress"></div></div>
+      <div class="bb-step-label" id="bb-step-label">Step 1 of 6</div>
+      <div class="bb-status" id="bb-status">Loading live data...</div>
     </div>
 
-  </div>
+    <form id="bb-form" onsubmit="return false;">
 
-  <!-- RIGHT: QUOTE PANEL -->
-  <div class="right-panel">
-    <div class="quote-title">Your Quote</div>
-    <div class="quote-sub">Mobile convenience fee included</div>
-
-    <div id="quoteBikeBadge" style="display:none" class="quote-bike-badge">
-      <span id="quoteBikeIcon"></span>
-      <span id="quoteBikeName"></span>
-    </div>
-
-    <div id="quoteEmpty" class="quote-empty">
-      <div class="quote-empty-icon">🔧</div>
-      <div class="quote-empty-text">Select your bike type and services<br>to generate an instant quote</div>
-    </div>
-
-    <div id="quoteContent" style="display:none; flex:1; display:none; flex-direction:column;">
-      <div class="quote-items" id="quoteItems"></div>
-
-      <div class="quote-breakdown">
-        <div class="breakdown-row">
-          <span class="br-label">Labor subtotal</span>
-          <span class="br-val" id="laborTotal">$0</span>
+      <div class="bb-step active" data-step="1">
+        <div class="bb-step-header"><span class="bb-step-num">01</span><h2>What type of bike?</h2></div>
+        <p class="bb-step-desc">Select your bike type and we'll show only the services that apply.</p>
+        <div class="bb-tile-grid" id="bike-type-grid">
+          <div class="bb-loading"><div class="bb-spinner"></div>Loading bike types...</div>
         </div>
-        <div class="breakdown-row" id="partsRow" style="display:none">
-          <span class="br-label">Parts (quoted separately)</span>
-          <span class="br-val" style="color:var(--muted)">*See note</span>
+        <div class="bb-nav"><div></div><button type="button" class="bb-btn-primary" onclick="bbNext()">Next →</button></div>
+      </div>
+
+      <div class="bb-step" data-step="2">
+        <div class="bb-step-header"><span class="bb-step-num">02</span><h2>Select Services</h2></div>
+        <p class="bb-step-desc">Choose all services needed. Services are filtered to match your bike type. Items marked <span class="bb-parts-badge">+ Parts</span> may require additional parts costs.</p>
+        <div class="bb-search-wrap"><input type="text" id="bb-search" placeholder="Search services..." oninput="bbFilterServices(this.value)" autocomplete="off"></div>
+        <div id="bb-services-list" class="bb-services-list"></div>
+        <div class="bb-nav"><button type="button" class="bb-btn-secondary" onclick="bbPrev()">← Back</button><button type="button" class="bb-btn-primary" onclick="bbNext()">Next →</button></div>
+      </div>
+
+      <div class="bb-step" data-step="3">
+        <div class="bb-step-header"><span class="bb-step-num">03</span><h2>Replacement Parts</h2></div>
+        <p class="bb-step-desc">Some of your selected services may require replacement parts. How would you like to handle that?</p>
+        <div class="bb-radio-stack" id="parts-options">
+          <label class="bb-radio-card"><input type="radio" name="parts_source" value="shop"><div class="bb-radio-dot"></div><div class="bb-radio-content"><strong>Borderline Bikes will source parts</strong><span>We'll find and supply what's needed. Final parts cost quoted separately.</span></div></label>
+          <label class="bb-radio-card"><input type="radio" name="parts_source" value="rider"><div class="bb-radio-dot"></div><div class="bb-radio-content"><strong>I'll provide my own parts</strong><span>You supply the parts. Labor costs only shown in your estimate.</span></div></label>
         </div>
-        <div class="breakdown-row">
-          <span class="br-label">Mobile service charge</span>
-          <span class="br-val">$50.00</span>
+        <div class="bb-nav"><button type="button" class="bb-btn-secondary" onclick="bbPrev()">← Back</button><button type="button" class="bb-btn-primary" onclick="bbNext()">Next →</button></div>
+      </div>
+
+      <div class="bb-step" data-step="4">
+        <div class="bb-step-header"><span class="bb-step-num">04</span><h2>Tell Us More</h2></div>
+        <p class="bb-step-desc">Help our technicians prepare by describing the issue and optionally uploading photos.</p>
+        <div class="bb-field"><label for="bb-details">Describe the problem or any relevant details</label><textarea id="bb-details" name="repair_details" rows="4" placeholder="e.g. rear brake is spongy, chain keeps slipping in 3rd gear..."></textarea></div>
+        <div class="bb-nav"><button type="button" class="bb-btn-secondary" onclick="bbPrev()">← Back</button><button type="button" class="bb-btn-primary" onclick="bbNext()">Next →</button></div>
+      </div>
+
+      <div class="bb-step" data-step="5">
+        <div class="bb-step-header"><span class="bb-step-num">05</span><h2>Service Location</h2></div>
+        <p class="bb-step-desc">Do you need a mobile technician to come to you, or will you drop the bike off?</p>
+        <div class="bb-radio-stack">
+          <label class="bb-radio-card"><input type="radio" name="service_location" value="mobile"><div class="bb-radio-dot"></div><div class="bb-radio-content"><strong>Mobile Service — Come to Me</strong><span>A technician visits your location. A $50.00 mobile service charge applies.</span></div></label>
+          <label class="bb-radio-card"><input type="radio" name="service_location" value="dropoff"><div class="bb-radio-dot"></div><div class="bb-radio-content"><strong>Drop Off at Shop</strong><span>Bring your bike in. No mobile service charge.</span></div></label>
         </div>
-        <div class="breakdown-total">
-          <span class="bt-label">Total Labor</span>
-          <span class="bt-val" id="grandTotal">$0</span>
+        <div class="bb-nav"><button type="button" class="bb-btn-secondary" onclick="bbPrev()">← Back</button><button type="button" class="bb-btn-primary" onclick="bbNext()">Next →</button></div>
+      </div>
+
+      <div class="bb-step" data-step="6">
+        <div class="bb-step-header"><span class="bb-step-num">06</span><h2>Your Estimate</h2></div>
+        <p class="bb-step-desc">Review your quote below. Labor costs are fixed — parts costs (if applicable) will be finalized when our team reviews your request.</p>
+        <div class="bb-quote-box">
+          <div class="bb-quote-meta" id="bb-quote-meta"></div>
+          <table class="bb-quote-table">
+            <thead><tr><th>Service</th><th>Labor</th></tr></thead>
+            <tbody id="bb-quote-rows"></tbody>
+            <tfoot>
+              <tr id="bb-mobile-row" style="display:none"><td>Mobile Service Charge</td><td>$50.00</td></tr>
+              <tr class="bb-total-row"><td><strong>Estimated Labor Total</strong></td><td><strong id="bb-grand-total">$0.00</strong></td></tr>
+            </tfoot>
+          </table>
+          <div class="bb-parts-note" id="bb-parts-note" style="display:none">⚠️ One or more services may require parts. Parts costs will be quoted separately by our team.</div>
+        </div>
+        <div class="bb-field" style="margin-top:24px;"><label for="bb-email">Your Email Address <span style="color:#e53e3e">*</span></label><input type="email" id="bb-email" name="customer_email" placeholder="you@example.com" required></div>
+        <div class="bb-field"><label for="bb-name">Your Name <span class="bb-optional">(Optional)</span></label><input type="text" id="bb-name" name="customer_name" placeholder="Full name"></div>
+        <div class="bb-field"><label for="bb-phone">Phone Number <span class="bb-optional">(Optional)</span></label><input type="tel" id="bb-phone" name="customer_phone" placeholder="(555) 000-0000"></div>
+        <div class="bb-nav"><button type="button" class="bb-btn-secondary" onclick="bbPrev()">← Back</button><button type="button" class="bb-btn-submit" id="bb-submit-btn" onclick="bbSubmit()">Confirm & Send Quote Request</button></div>
+      </div>
+
+      <div class="bb-step" data-step="7">
+        <div class="bb-success">
+          <div class="bb-success-icon">✓</div>
+          <h2>Quote Request Sent!</h2>
+          <p>Thanks! We've received your service request. A confirmation will be sent to your email, and our team will follow up shortly to confirm your appointment.</p>
+          <div class="bb-success-ref" id="bb-ref-num"></div>
         </div>
       </div>
 
-      <div class="note-banner" id="partsNote" style="display:none">
-        ⚠ Pricing shown is for labor only. Replacement parts (if required) are extra and should be considered before booking service.
-      <br><br>⚠ Additional fees not shown. Final price will change when taxes and/or credit card fees are applied.
-      </div>
-
-      <div id="partsQuestion" style="display:none; margin:10px 0; padding:12px; background:rgba(232,113,26,0.08); border:1px solid var(--orange); border-radius:8px;">
-        <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; letter-spacing:0.05em; color:var(--orange); margin-bottom:8px;">REPLACEMENT PARTS</div>
-        <div style="font-size:11px; color:#8a8f9e; margin-bottom:10px;">Do you have the replacement parts, or should Borderline Bikes supply them?</div>
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; color:#8a8f9e;"><input type="radio" name="partsSupply" value="customer" style="accent-color:var(--orange);"> I have the parts</label>
-          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; color:#8a8f9e;"><input type="radio" name="partsSupply" value="borderline" style="accent-color:var(--orange);"> Borderline Bikes to supply</label>
-          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; color:#8a8f9e;"><input type="radio" name="partsSupply" value="unsure" style="accent-color:var(--orange);"> Not sure yet</label>
-        </div>
-      </div>
-
-      <div id="bikeDetailsForm" style="display:none; margin:10px 0; padding:12px; background:rgba(232,113,26,0.08); border:1px solid var(--orange); border-radius:8px;">
-        <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; letter-spacing:0.05em; color:var(--orange); margin-bottom:8px;">BIKE DETAILS</div>
-        <div style="margin-bottom:10px;">
-          <div style="font-size:11px; color:#8a8f9e; margin-bottom:4px;">Bike make and model (e.g. Trek FX3 2023)</div>
-          <input id="bikeMakeModel" type="text" placeholder="e.g. Trek FX3 2023"
-            style="width:100%; box-sizing:border-box; padding:8px 10px; background:rgba(255,255,255,0.05); border:1px solid rgba(232,113,26,0.3); border-radius:6px; font-size:12px; color:#8a8f9e; outline:none;">
-        </div>
-        <div>
-          <div style="font-size:11px; color:#8a8f9e; margin-bottom:4px;">Upload a photo of your bike (optional)</div>
-          <input id="bikePhoto" type="file" accept="image/*"
-            style="width:100%; box-sizing:border-box; font-size:11px; color:#8a8f9e; cursor:pointer;">
-        </div>
-      </div>
-
-      <button class="cta-btn" id="ctaBtn" onclick="requestQuote()">Request This Service</button>
-      <button class="clear-btn" onclick="clearAll()">Clear Selection</button>
-    </div>
+    </form>
   </div>
 </div>
 
-<div class="toast" id="toast">Quote copied to clipboard!</div>
-
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────────────
-const SHEET_ID = '1xsZb1EW2xxsqJqO38siPI9FrXjA3oJLn7i8CKE7gqNg';
-const MASTER_TAB = 'Master List'; // First tab — always skipped
+(function() {
 
-// ── ICON KEYWORD MAP ─────────────────────────────────────────────────────────
-// Partial, case-insensitive matching — add keywords as needed
-const ICON_MAP = [
-  { keywords: ['kids','youth','junior','children','balance','mini'],    icon: '🧒' },
-  { keywords: ['bmx','stunt','dirt','jump','trick'],                    icon: '❌' },
-  { keywords: ['beach','cruiser'],                                      icon: '🏖️' },
-  { keywords: ['mountain','mtb','enduro','downhill','trail'],           icon: '⛰️' },
-  { keywords: ['road','racing','race'],                                 icon: '🏁' },
-  { keywords: ['gravel','adventure','bikepacking'],                     icon: '🪨' },
-  { keywords: ['cargo','utility','longtail','freight'],                 icon: '📦' },
-  { keywords: ['e-trike','etrike','electric trike'],                    icon: '⚡⚡⚡' },
-  { keywords: ['e-bike','ebike','electric bike','electric'],            icon: '⚡⚡' },
-  { keywords: ['trike','tricycle','three wheel'],                       icon: '🛺' },
-  { keywords: ['fixie','fixed','single speed'],                         icon: '⚙️' },
-  { keywords: ['hybrid'],                                               icon: '🚲' },
-  { keywords: ['folding','fold','compact'],                             icon: '📁' },
-  { keywords: ['fat','plus','wide','snow'],                             icon: '🏔️' },
-  { keywords: ['city','urban','commuter','dutch'],                      icon: '🏙️' },
-  { keywords: ['touring','tour','travel','randonneur'],                 icon: '🗺️' },
-  { keywords: ['tandem','double','couples'],                            icon: '👫' },
-  { keywords: ['recumbent','laid','lowrider'],                          icon: '🛋️' },
-];
+  // ── CONFIG ────────────────────────────────────────────────────────────────
+  const SHEET_ID = '1xsZb1EW2xxsqJqO38siPI9FrXjA3oJLn7i8CKE7gqNg';
+  const MASTER_TAB = 'Master List';
+  const MOBILE_CHARGE = 50.00;
+  const TOTAL_STEPS = 6;
 
-// ── GET ICON FROM TAB NAME ────────────────────────────────────────────────────
-function getIcon(tabName) {
-  const name = tabName.toLowerCase();
-  for (const entry of ICON_MAP) {
-    if (entry.keywords.some(k => name.includes(k))) return entry.icon;
-  }
-  return '🚲'; // default fallback
-}
-
-// Dynamic bike types — populated from Google Sheet tabs at runtime
-let BIKE_TYPES = [];
-
-// ── STATE ────────────────────────────────────────────────────────────────────
-let allData = {};          // { bikeName: [ {category, task, labor, parts, mobile} ] }
-let selectedBike = null;
-let serviceType = 'shop';
-let selectedServices = [];
-let mobileActive = true;
-let openCategories = new Set();
-
-// ── FETCH FROM GOOGLE SHEETS ─────────────────────────────────────────────────
-async function fetchSheetTab(tabName) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  // Strip Google's JSON wrapper (google wraps with /*O_o*/\ngoogle.visualization.Query.setResponse(...);)
-  const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
-  const json = JSON.parse(jsonStr ? jsonStr[1] : text.substring(47).slice(0,-2));
-  const rows = json.table.rows;
-
-  // gviz returns column headers separately — just parse every non-empty row directly
-  // Columns are always: A=Service Category, B=Service Task, C=Labor, D=Parts, E=Mobile Service Charge
-  let dataRows = [];
-  for (const row of rows) {
-    if (!row.c) continue;
-    const get = (i) => row.c[i] ? (row.c[i].v !== null && row.c[i].v !== undefined ? row.c[i].v : '') : '';
-    const category = get(0).toString().trim();
-    const task     = get(1).toString().trim();
-    const laborRaw = get(2);
-    const parts    = get(3).toString().trim();
-    const mobileRaw= get(4);
-    // Skip blank rows and header rows
-    if (!task || task.toLowerCase() === 'service task') continue;
-    if (category.toLowerCase() === 'service category') continue;
-    const labor = typeof laborRaw === 'number' ? laborRaw : parseFloat(String(laborRaw).replace(/[^0-9.]/g,'')) || 0;
-    const mobile = typeof mobileRaw === 'number' ? mobileRaw : parseFloat(String(mobileRaw).replace(/[^0-9.]/g,'')) || 50;
-    dataRows.push({ category: category || 'General', task, labor, parts, mobile });
-  }
-  return dataRows;
-}
-
-// ── FETCH BIKE TYPES FROM MASTER LIST HEADERS ────────────────────────────────
-// Reads column headers (row 1) from Master List — columns F onwards are bike types
-// Client just adds/removes columns in Master List to add/remove bike types
-async function fetchTabNames() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}&tq=SELECT%20*%20LIMIT%201`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
-  const json = JSON.parse(jsonStr ? jsonStr[1] : text.substring(47).slice(0,-2));
-
-  // Column headers are in json.table.cols — label is the header name
-  // First 5 cols are: Service Category, Service Task, Labor, Parts, Mobile Service Charge
-  // From col index 5 onwards are bike type names
-  const cols = json.table.cols;
-  const bikeTypes = cols
-    .slice(5) // skip first 5 fixed columns
-    .map(c => c.label ? c.label.trim() : '')
-    .filter(name => name !== ''); // remove empty columns
-
-  if (bikeTypes.length === 0) throw new Error('No bike types found in headers');
-  return bikeTypes;
-}
-
-async function loadAllData() {
-  document.getElementById('dataStatus').textContent = 'Loading live data...';
-  try {
-    // Step 1: fetch tab names dynamically
-    const tabs = await fetchTabNames();
-    BIKE_TYPES = tabs;
-
-    // Step 2: fetch each bike tab's data in parallel
-    const promises = BIKE_TYPES.map(b => fetchSheetTab(b).then(rows => ({bike:b, rows})));
-    const results = await Promise.all(promises);
-    results.forEach(({bike,rows}) => { allData[bike] = rows; });
-    document.getElementById('dataStatus').textContent = 'Live data loaded ✓';
-    buildBikeGrid();
-  } catch(e) {
-    console.warn('Dynamic tab fetch failed, using fallback:', e);
-    document.getElementById('dataStatus').textContent = 'Using offline data';
-    loadFallbackData();
-    buildBikeGrid();
-  }
-}
-
-// ── FALLBACK DATA (from uploaded Excel) ──────────────────────────────────────
-function loadFallbackData() {
-  // Set fallback bike types if dynamic fetch failed
-  BIKE_TYPES = ['Kids/Youth','BMX','Beach Cruiser','Mountain','Hybrid','Fixie','Road','Gravel','Cargo','Trike','E-Bike','E-Trike'];
-  // Embedded snapshot of master data mapped per bike type
-  const master = [
-    {cat:"Warranty Evaluation",task:"Review fault and advise",labor:60,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Bike Assembly",task:"Unbox and build kids acoustic bike without controls 8\"-16\" (Standard)",labor:50,parts:"N/A",bikes:["Hybrid","Cruiser"]},
-    {cat:"Bike Assembly",task:"Unbox and build kids E-bike without controls 8\"-16\" (Electric)",labor:70,parts:"N/A",bikes:["E-Bike"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic bike without controls 20\"-29\" (Standard)",labor:80,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic bike with controls 20\"-29\" (Standard)",labor:110,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults E-bike with controls 16\"-29\" (Electric)",labor:160,parts:"N/A",bikes:["E-Bike"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic cargo bike with controls 16\"-29\" (Standard)",labor:170,parts:"N/A",bikes:["Hybrid","Cruiser"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults E-cargo bike with controls 16\"-29\" (Electric)",labor:190,parts:"N/A",bikes:["E-Bike"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike without controls (Standard)",labor:260,parts:"N/A",bikes:["Trike","Cargo"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults acoustic trike with controls (Standard)",labor:300,parts:"N/A",bikes:["Trike","Cargo"]},
-    {cat:"Bike Assembly",task:"Unbox and build adults E-trike with controls (Electric)",labor:340,parts:"N/A",bikes:["E-Trike"]},
-    {cat:"Tuneup",task:"Basic tuneup on kids acoustic bike without controls 8\"-16\" (Standard)",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser"]},
-    {cat:"Tuneup",task:"Basic tuneup on kids E-bike without controls 8\"-16\" (Electric)",labor:80,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Tuneup",task:"Basic tuneup on adults acoustic bike with controls 16\"-29\" (Standard)",labor:120,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Tuneup",task:"Basic tuneup on adults E-bike with controls 16\"-29\" (Electric)",labor:140,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Tuneup",task:"Basic tuneup on adults acoustic trike without controls (Standard)",labor:180,parts:"source/quote",bikes:["Trike","Cargo"]},
-    {cat:"Tuneup",task:"Basic tuneup on adults E-trike with controls (Electric)",labor:260,parts:"source/quote",bikes:["E-Trike"]},
-    {cat:"Bike Return",task:"Box and Ship original box/packing material, Item was fully assembled (Standard)",labor:110,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Bike Return",task:"Box and Ship original box/packing material, Item was fully assembled (Electric)",labor:140,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Bike Return",task:"Box and Ship without box/packing material, Item was fully assembled (Standard)",labor:110,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Frame / Fork",task:"Rethread braze on (1-2)",labor:20,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Frame / Fork",task:"Bent derailleur hanger (can be aligned)",labor:40,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Frame / Fork",task:"Bent derailleur hanger (needs replacement part)",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Frame / Fork",task:"Rigid fork needs replacement",labor:80,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Frame / Fork",task:"Suspension fork needs replacement",labor:80,parts:"source/quote",bikes:["Hybrid","Mountain","Gravel","E-Bike"]},
-    {cat:"Frame / Fork",task:"Suspension shock needs replacement",labor:60,parts:"source/quote",bikes:["Hybrid","Mountain","E-Bike"]},
-    {cat:"Wheels / Tires",task:"Front tire needs replacement (standard bike)",labor:25,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Wheels / Tires",task:"Rear tire needs replacement (standard bike)",labor:30,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Wheels / Tires",task:"Front tube needs replacement (standard bike)",labor:25,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Wheels / Tires",task:"Rear tube needs replacement (standard bike)",labor:30,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Wheels / Tires",task:"Front tire needs replacement (E-Bike with mid-drive motor)",labor:35,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Wheels / Tires",task:"Rear tire needs replacement (E-bike with hub motor)",labor:50,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Wheels / Tires",task:"Front Wheel needs truing",labor:25,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike"]},
-    {cat:"Wheels / Tires",task:"Rear Wheel needs truing",labor:35,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike"]},
-    {cat:"Wheels / Tires",task:"Front Wheel needs replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Wheels / Tires",task:"Rear Wheel needs replacement",labor:50,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Wheels / Tires",task:"Rear Wheel needs replacement (E-bike with Hub Motor)",labor:65,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Wheels / Tires",task:"Spoke replacement (< 2)",labor:40,parts:"$10.00 each",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike"]},
-    {cat:"Wheels / Tires",task:"Wheel rebuild (> 11 spokes)",labor:400,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike"]},
-    {cat:"Brakes - Rim",task:"Front brake needs replacement",labor:20,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Road"]},
-    {cat:"Brakes - Rim",task:"Rear brake needs replacement",labor:20,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Road"]},
-    {cat:"Brakes - Rim",task:"Brake Lever needs replacement",labor:20,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Road"]},
-    {cat:"Brakes - Disc",task:"Front brake bleed",labor:50,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Brakes - Disc",task:"Rear brake bleed",labor:50,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Brakes - Disc",task:"Front hydraulic brake assembly needs replacement",labor:90,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Brakes - Disc",task:"Rear hydraulic brake assembly needs replacement (internally routed)",labor:130,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Brakes - Disc",task:"Bent Rotor needs truing",labor:20,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Brakes - Disc",task:"Front Rotor Needs Replacement (standard bike)",labor:50,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Brakes - Disc",task:"Rear Rotor Needs Replacement (standard bike)",labor:70,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel"]},
-    {cat:"Brakes - Disc",task:"Front Rotor Needs Replacement (E-bike with hub motor)",labor:85,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Brakes - Disc",task:"Rear Rotor Needs Replacement (E-bike with hub motor)",labor:85,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Brakes - Disc",task:"Brake caliper needs replacement + adjustment",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Brakes - Disc",task:"Front pads need replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Brakes - Disc",task:"Rear pads need replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Drivetrain",task:"Shifter needs adjustment",labor:30,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","E-Bike"]},
-    {cat:"Drivetrain",task:"Shifter needs replacement + adjustment",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","E-Bike"]},
-    {cat:"Drivetrain",task:"DS Crank arm needs replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Drivetrain",task:"Chainring (1x-3x) needs replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Drivetrain",task:"Bottom Bracket needs adjustment (3 piece Crank)",labor:50,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Drivetrain",task:"Bottom Bracket needs replacement",labor:70,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Drivetrain",task:"Chain needs to be replaced",labor:30,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Drivetrain",task:"Belt needs to be replaced",labor:50,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","E-Bike"]},
-    {cat:"Drivetrain",task:"Freewheel needs replacement (standard bike)",labor:65,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike"]},
-    {cat:"Drivetrain",task:"Freewheel needs replacement (E-bike with mid-drive motor)",labor:75,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Drivetrain",task:"Cassette needs replacement (standard bike)",labor:65,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike"]},
-    {cat:"Drivetrain",task:"Pedals need replacement",labor:20,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Drivetrain",task:"Front derailleur adjustment",labor:30,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","E-Bike"]},
-    {cat:"Drivetrain",task:"Rear derailleur adjustment",labor:30,parts:"N/A",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","E-Bike"]},
-    {cat:"Drivetrain",task:"Rear derailleur needs replacement",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","E-Bike"]},
-    {cat:"Cockpit",task:"Headset adjustment",labor:30,parts:"N/A",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Cockpit",task:"Headset needs replacement",labor:70,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Cockpit",task:"Fixie Handlebar (no controls) needs replacement",labor:25,parts:"source/quote",bikes:["Fixie"]},
-    {cat:"Cockpit",task:"Basic Handlebar (single hand brake or shifter) needs replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Cockpit",task:"Advanced Handlebar (integrated brakes & shifters) needs replacement",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Road","Gravel","E-Bike"]},
-    {cat:"Cockpit",task:"Stem needs replacement (multi bolt, clamp style)",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Cockpit",task:"Bar tape needs replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","E-Bike"]},
-    {cat:"Cockpit",task:"Grips (Friction or Bolt-on) needs replacement",labor:10,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Cockpit",task:"Saddle needs replacement",labor:10,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Cockpit",task:"Seatpost collar needs replacement",labor:10,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Cockpit",task:"Dropper post needs replacement",labor:60,parts:"source/quote",bikes:["Hybrid","Mountain","Gravel","E-Bike"]},
-    {cat:"Electronics",task:"Motor Replacement (complete rear wheel with Hub Motor)",labor:60,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Electronics",task:"Motor Replacement (midrive)",labor:250,parts:"source/quote",bikes:["E-Bike"]},
-    {cat:"Electronics",task:"Display needs replacement",labor:20,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Electronics",task:"Loose wires, connection check required",labor:20,parts:"N/A",bikes:["E-Bike","E-Trike"]},
-    {cat:"Electronics",task:"Controller needs replacement (internal routed)",labor:120,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Electronics",task:"Throttle Needs Replacement",labor:30,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Electronics",task:"External PAS sensor needs replacement",labor:50,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Electronics",task:"Cadence sensor needs replacement",labor:40,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Electronics",task:"Battery terminal needs replacement",labor:40,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Electronics",task:"Battery cover needs replacement",labor:40,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Kickstand needs replacement",labor:20,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Front light needs replacement (external connector)",labor:30,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Front light needs replacement (internal connector)",labor:60,parts:"source/quote",bikes:["E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Rear light needs replacement (external connector)",labor:30,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Front fender needs replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Rear fender needs replacement",labor:60,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Rack needs replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Mountain","Gravel","Trike","E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Basket needs replacement",labor:40,parts:"source/quote",bikes:["Hybrid","Cruiser","Trike","E-Bike","E-Trike"]},
-    {cat:"Accessories",task:"Other",labor:10,parts:"source/quote",bikes:["Hybrid","Cruiser","Fixie","Mountain","Road","Gravel","Trike","E-Bike","E-Trike"]},
+  // ── ICON MAP ──────────────────────────────────────────────────────────────
+  const ICON_MAP = [
+    { keywords: ['kids','youth','junior','children','balance','mini'], icon: '🧒' },
+    { keywords: ['bmx','stunt','dirt','jump','trick'],                 icon: '❌' },
+    { keywords: ['beach','cruiser'],                                   icon: '🏖️' },
+    { keywords: ['mountain','mtb','enduro','downhill','trail'],        icon: '⛰️' },
+    { keywords: ['road','racing','race'],                              icon: '🏁' },
+    { keywords: ['gravel','adventure','bikepacking'],                  icon: '🪨' },
+    { keywords: ['cargo','utility','longtail','freight'],              icon: '📦' },
+    { keywords: ['e-trike','etrike','electric trike'],                 icon: '⚡⚡⚡' },
+    { keywords: ['e-bike','ebike','electric bike','electric'],         icon: '⚡⚡' },
+    { keywords: ['trike','tricycle','three wheel'],                    icon: '🛺' },
+    { keywords: ['fixie','fixed','single speed'],                      icon: '⚙️' },
+    { keywords: ['hybrid'],                                            icon: '🚲' },
+    { keywords: ['folding','fold','compact'],                          icon: '📁' },
   ];
 
-  BIKE_TYPES.forEach(bike => {
-    allData[bike] = master
-      .filter(r => r.bikes.includes(bike))
-      .map(r => ({category:r.cat, task:r.task, labor:r.labor, parts:r.parts, mobile:50}));
-  });
-}
+  function getIcon(name) {
+    const n = name.toLowerCase();
+    for (const e of ICON_MAP) { if (e.keywords.some(k => n.includes(k))) return e.icon; }
+    return '🚲';
+  }
 
-// ── BUILD BIKE GRID ──────────────────────────────────────────────────────────
-function buildBikeGrid() {
-  const grid = document.getElementById('bikeGrid');
-  grid.innerHTML = '';
-  BIKE_TYPES.forEach(bike => {
-    const count = (allData[bike]||[]).length;
-    const btn = document.createElement('div');
-    btn.className = 'bike-btn';
-    btn.dataset.bike = bike;
-    btn.innerHTML = `
-      <div class="bike-icon">${getIcon(bike)}</div>
-      <div class="bike-label">${bike}</div>
-      <div class="bike-count">${count} services</div>`;
-    btn.onclick = () => selectBike(bike);
-    grid.appendChild(btn);
-  });
-}
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let BIKE_TYPES = [];
+  let allData = {};   // { bikeName: [{category, task, labor, hasParts}] }
+  let SERVICES = [];  // flat array built after bike selected, for index refs
+  let state = { step: 1, bikeType: null, selectedServices: new Set(), partsSource: null, serviceLocation: null };
 
-// ── SELECT BIKE ──────────────────────────────────────────────────────────────
-async function selectBike(bike) {
-  selectedBike = bike;
-  selectedServices = [];
-  openCategories.clear();
+  // ── GOOGLE SHEET FETCH ────────────────────────────────────────────────────
+  async function fetchTabNames() {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(MASTER_TAB)}&tq=SELECT%20*%20LIMIT%201`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
+    const json = JSON.parse(jsonStr ? jsonStr[1] : text.substring(47).slice(0,-2));
+    const cols = json.table.cols;
+    return cols.slice(5).map(c => c.label ? c.label.trim() : '').filter(n => n !== '');
+  }
 
-  document.querySelectorAll('.bike-btn').forEach(b => b.classList.toggle('selected', b.dataset.bike === bike));
-
-  // Unlock steps
-  
-  document.getElementById('step3').classList.remove('step-disabled');
-  
-  document.getElementById('step3num').className = 'step-num';
-
-  // Update quote badge
-  document.getElementById('quoteBikeIcon').textContent = getIcon(bike);
-  document.getElementById('quoteBikeName').textContent = bike;
-  document.getElementById('quoteBikeBadge').style.display = 'inline-flex';
-
-  // Show spinner immediately for smooth transition
-  document.getElementById('categoriesArea').innerHTML = `
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <span style="color:var(--muted);font-size:0.85rem;letter-spacing:0.05em;">FETCHING LATEST SERVICES...</span>
-    </div>`;
-
-  // Re-fetch live data from Google Sheets for this bike type
-  try {
-    const freshRows = await fetchSheetTab(bike);
-    if (freshRows.length > 0) {
-      allData[bike] = freshRows;
-      // Update service count on the bike button
-      const btn = document.querySelector(`.bike-btn[data-bike="${bike}"] .bike-count`);
-      if (btn) btn.textContent = `${freshRows.length} services`;
+  async function fetchSheetTab(tabName) {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
+    const json = JSON.parse(jsonStr ? jsonStr[1] : text.substring(47).slice(0,-2));
+    const rows = json.table.rows;
+    const dataRows = [];
+    for (const row of rows) {
+      if (!row.c) continue;
+      const get = (i) => row.c[i] ? (row.c[i].v !== null && row.c[i].v !== undefined ? row.c[i].v : '') : '';
+      const category = get(0).toString().trim();
+      const task     = get(1).toString().trim();
+      const laborRaw = get(2);
+      const parts    = get(3).toString().trim();
+      if (!task || task.toLowerCase() === 'service task') continue;
+      if (category.toLowerCase() === 'service category') continue;
+      const labor = typeof laborRaw === 'number' ? laborRaw : parseFloat(String(laborRaw).replace(/[^0-9.]/g,'')) || 0;
+      const hasParts = parts && parts !== 'N/A';
+      dataRows.push({ category: category || 'General', task, labor, hasParts, parts });
     }
-  } catch(e) {
-    // silently fall back to cached data
+    return dataRows;
   }
 
-  buildCategories();
-  updateQuote();
-}
-
-// ── SERVICE TYPE ─────────────────────────────────────────────────────────────
-
-
-// ── BUILD CATEGORIES ─────────────────────────────────────────────────────────
-function buildCategories() {
-  const area = document.getElementById('categoriesArea');
-  const services = allData[selectedBike] || [];
-
-  const grouped = {};
-  services.forEach(s => {
-    if (!grouped[s.category]) grouped[s.category] = [];
-    grouped[s.category].push(s);
-  });
-
-  area.innerHTML = '';
-
-  if (services.length === 0) {
-    area.innerHTML = `<div class="loading-state" style="color:var(--muted)">No services found for this bike type.</div>`;
-    return;
+  // ── LOAD ALL DATA ─────────────────────────────────────────────────────────
+  async function loadAllData() {
+    setStatus('Loading live data...');
+    try {
+      BIKE_TYPES = await fetchTabNames();
+      const results = await Promise.all(BIKE_TYPES.map(b => fetchSheetTab(b).then(rows => ({bike: b, rows}))));
+      results.forEach(({bike, rows}) => { allData[bike] = rows; });
+      setStatus('Live data loaded ✓');
+      buildBikeTiles();
+    } catch(e) {
+      console.warn('Sheet fetch failed, using fallback:', e);
+      setStatus('Using offline data');
+      loadFallback();
+      buildBikeTiles();
+    }
   }
 
-  Object.entries(grouped).forEach(([cat, items]) => {
-    const block = document.createElement('div');
-    block.className = 'category-block';
-    const selCount = items.filter(i => selectedServices.some(s => s.task===i.task)).length;
-    const isOpen = openCategories.has(cat);
-
-    block.innerHTML = `
-      <div class="category-header" onclick="toggleCategory('${cat.replace(/'/g,"\\'")}')">
-        <div class="cat-left">
-          <span class="cat-name">${cat}</span>
-          <span class="cat-count">${items.length}</span>
-          <span class="cat-selected-count ${selCount>0?'visible':''}" id="selcount-${btoa(cat).replace(/=/g,'')}">+${selCount} selected</span>
-        </div>
-        <span class="cat-arrow ${isOpen?'open':''}">▼</span>
-      </div>
-      <div class="services-list ${isOpen?'open':''}">
-        ${items.map(item => {
-          const isSel = selectedServices.some(s=>s.task===item.task);
-          const laborDisplay = item.labor > 0 ? `$${item.labor}` : 'Quote';
-          return `<div class="service-item ${isSel?'selected':''}" onclick="toggleService(${JSON.stringify(item).replace(/"/g,'&quot;')})">
-            <div class="service-check"></div>
-            <div class="service-info">
-              <div class="service-task">${item.task}</div>
-              ${item.parts && item.parts!=='N/A' ? `<div class="service-parts">Parts: ${item.parts}</div>`:''}
-            </div>
-            <div class="service-price">
-              <div class="price-labor">${laborDisplay}</div>
-              <div class="price-label">labor</div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>`;
-    area.appendChild(block);
-  });
-}
-
-function toggleCategory(cat) {
-  if (openCategories.has(cat)) openCategories.delete(cat);
-  else openCategories.add(cat);
-  buildCategories();
-}
-
-// ── TOGGLE SERVICE ────────────────────────────────────────────────────────────
-function toggleService(item) {
-  const idx = selectedServices.findIndex(s=>s.task===item.task);
-  if(idx>=0) selectedServices.splice(idx,1);
-  else selectedServices.push(item);
-  buildCategories();
-  updateQuote();
-}
-
-// ── UPDATE QUOTE ──────────────────────────────────────────────────────────────
-function updateQuote() {
-  const empty = document.getElementById('quoteEmpty');
-  const content = document.getElementById('quoteContent');
-  const itemsEl = document.getElementById('quoteItems');
-
-  if (!selectedServices.length) {
-    empty.style.display='flex'; content.style.display='none';
-    return;
+  function setStatus(msg) {
+    const el = document.getElementById('bb-status');
+    if (el) el.textContent = msg;
   }
 
-  empty.style.display='none'; content.style.display='flex';
+  // ── FALLBACK DATA ─────────────────────────────────────────────────────────
+  function loadFallback() {
+    BIKE_TYPES = ['Kids/Youth','BMX','Beach Cruiser','Mountain','Hybrid','Fixie','Road','Gravel','Cargo','Trike','E-Bike','E-Trike'];
+    BIKE_TYPES.forEach(bike => { allData[bike] = []; });
+  }
 
-  // Items
-  let laborSum = 0;
-  let hasSourceQuote = false;
-  itemsEl.innerHTML = '';
-  selectedServices.forEach((s, idx) => {
-    laborSum += s.labor||0;
-    if(s.parts && s.parts!=='N/A') hasSourceQuote = true;
-    const div = document.createElement('div');
-    div.className = 'quote-item';
-    // Use data-idx attribute to avoid closure/string issues
-    div.innerHTML = `
-      <span class="qi-name">${s.task}</span>
-      <span class="qi-price">$${s.labor}</span>
-      <span class="qi-remove" data-idx="${idx}">✕</span>`;
-    itemsEl.appendChild(div);
-  });
+  // ── BUILD BIKE TILES ──────────────────────────────────────────────────────
+  function buildBikeTiles() {
+    const grid = document.getElementById('bike-type-grid');
+    grid.innerHTML = '';
+    BIKE_TYPES.forEach(bike => {
+      const label = document.createElement('label');
+      label.className = 'bb-tile';
+      label.dataset.value = bike;
+      label.innerHTML = `<input type="radio" name="bike_type" value="${bike}">
+        <div class="bb-tile-icon">${getIcon(bike)}</div>
+        <div class="bb-tile-label">${bike}</div>`;
+      label.addEventListener('click', () => {
+        document.querySelectorAll('.bb-tile').forEach(t => t.classList.remove('selected'));
+        label.classList.add('selected');
+        label.querySelector('input').checked = true;
+        state.bikeType = bike;
+      });
+      grid.appendChild(label);
+    });
+  }
 
-  // Attach remove listeners after all items are in DOM
-  itemsEl.querySelectorAll('.qi-remove').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const index = parseInt(this.getAttribute('data-idx'));
-      selectedServices.splice(index, 1);
-      buildCategories();
-      updateQuote();
+  // ── RADIO CARDS ───────────────────────────────────────────────────────────
+  document.querySelectorAll('.bb-radio-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const name = card.querySelector('input').name;
+      document.querySelectorAll(`.bb-radio-card input[name="${name}"]`).forEach(inp => inp.closest('.bb-radio-card').classList.remove('selected'));
+      card.classList.add('selected');
+      card.querySelector('input').checked = true;
+      if (name === 'parts_source') state.partsSource = card.querySelector('input').value;
+      if (name === 'service_location') state.serviceLocation = card.querySelector('input').value;
     });
   });
 
-  const mobileFee = mobileActive ? 50 : 0;
-  const grand = laborSum + mobileFee;
+  // ── NAVIGATION ────────────────────────────────────────────────────────────
+  window.bbNext = function() {
+    if (!validateStep()) return;
+    state.step++;
+    render();
+    if (state.step === 2) populateServices();
+    if (state.step === 6) buildQuoteSummary();
+  };
 
-  document.getElementById('laborTotal').textContent = `$${laborSum.toFixed(2)}`;
-  document.getElementById('grandTotal').textContent = `$${grand.toFixed(2)}`;
-  
-  
-  document.getElementById('partsRow').style.display = hasSourceQuote ? 'flex' : 'none';
-  document.getElementById('partsQuestion').style.display = hasSourceQuote ? 'block' : 'none';
-  document.getElementById('bikeDetailsForm').style.display = hasSourceQuote ? 'block' : 'none';
-  document.getElementById('partsNote').style.display = hasSourceQuote ? 'block' : 'none';
-}
+  window.bbPrev = function() {
+    state.step--;
+    render();
+    if (state.step === 2) populateServices();
+  };
 
-function removeServiceByIndex(idx) {
-  selectedServices.splice(idx, 1);
-  buildCategories();
-  updateQuote();
-}
-
-function removeService(task) {
-  selectedServices = selectedServices.filter(s=>s.task!==task);
-  buildCategories();
-  updateQuote();
-}
-
-function clearAll() {
-  selectedServices = [];
-  // Also clear bike details fields
-  document.getElementById('bikeMakeModel').value = '';
-  document.getElementById('bikePhoto').value = '';
-  const radios = document.querySelectorAll('input[name="partsSupply"]');
-  radios.forEach(r => r.checked = false);
-  buildCategories();
-  updateQuote();
-}
-
-async function requestQuote() {
-  const logoSrc = document.querySelector('.brand-logo').src;
-  const mobileFee = mobileActive ? 50 : 0;
-  const laborSum = selectedServices.reduce((a,s)=>a+(s.labor||0),0);
-  const grand = laborSum + mobileFee;
-  const hasSourceQuote = selectedServices.some(s=>s.parts && s.parts!=='N/A');
-  const partsSupplyEl = document.querySelector('input[name="partsSupply"]:checked');
-  const bikeMakeModel = document.getElementById('bikeMakeModel').value.trim();
-  const bikePhotoEl = document.getElementById('bikePhoto');
-  const bikePhotoName = bikePhotoEl && bikePhotoEl.files.length > 0 ? bikePhotoEl.files[0].name : null;
-  const bikePhotoDataUrl = await new Promise(resolve => {
-    if (!bikePhotoEl || bikePhotoEl.files.length === 0) { resolve(null); return; }
-    const reader = new FileReader();
-    reader.onload = e => resolve(e.target.result);
-    reader.onerror = () => resolve(null);
-    reader.readAsDataURL(bikePhotoEl.files[0]);
-  });
-  const partsSupplyMap = { customer: 'Customer will supply parts', borderline: 'Borderline Bikes to supply parts', unsure: 'Parts supply TBD' };
-  const partsSupplyText = partsSupplyEl ? partsSupplyMap[partsSupplyEl.value] : null;
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  const quoteNum = 'BBS-' + now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + String(Math.floor(Math.random()*9000)+1000);
-
-  // Group services by category
-  const grouped = {};
-  selectedServices.forEach(s => {
-    if(!grouped[s.category]) grouped[s.category]=[];
-    grouped[s.category].push(s);
-  });
-
-  const serviceRows = Object.entries(grouped).map(([cat,items])=>`
-    <tr class="cat-row"><td colspan="3">${cat}</td></tr>
-    ${items.map(s=>`
-    <tr class="svc-row">
-      <td>${s.task}</td>
-      <td>${s.parts && s.parts!=='N/A' ? s.parts : '—'}</td>
-      <td>$${s.labor.toFixed(2)}</td>
-    </tr>`).join('')}
-  `).join('');
-
-  const modalHTML = `
-    <div id="quoteModal" onclick="closeModalOutside(event)">
-  <div id="sendOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1001; align-items:center; justify-content:center;" onclick="event.stopPropagation()">
-    <div style="background:#fff; border-radius:12px; padding:28px; width:90%; max-width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-      <h3 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; letter-spacing:0.05em; margin:0 0 6px; color:#111;">SEND YOUR QUOTE</h3>
-      <p style="font-size:0.85rem; color:#666; margin:0 0 16px;">Enter your email or mobile number and we'll send you a copy.</p>
-      <input id="sendInput" type="text" placeholder="Email address or phone number" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.95rem; margin-bottom:8px; outline:none;" onkeydown="if(event.key==='Enter') sendQuote()">
-      <div id="sendError" style="color:#e8711a; font-size:0.8rem; min-height:18px; margin-bottom:10px;"></div>
-      <div style="display:flex; gap:8px;">
-        <button onclick="sendQuote()" style="flex:1; padding:10px; background:#e8711a; color:#fff; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:1rem; letter-spacing:0.05em; cursor:pointer;">SEND</button>
-        <button onclick="closeSendOptions()" style="padding:10px 16px; background:#f0f0f0; color:#333; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:1rem; cursor:pointer;">CANCEL</button>
-      </div>
-    </div>
-  </div>
-      <div class="qm-box" id="qmBox">
-        <div class="qm-header">
-          <div class="qm-logo">
-            <img src="${logoSrc}" alt="Borderline Bikes" style="height:60px;width:auto;object-fit:contain;border-radius:0;display:block;">
-            <div>
-              <div class="qm-brand">Borderline Bikes</div>
-              <div class="qm-tagline">Your One Stop Mobile Bike Shop</div>
-              <div class="qm-contact">📞 (973) 798-8677 &nbsp;|&nbsp; ✉ info@borderlinebikes.com</div>
-            </div>
-          </div>
-          <div class="qm-meta">
-            <div class="qm-num">${quoteNum}</div>
-            <div class="qm-date">Date: ${dateStr}</div>
-            <div class="qm-valid"> Quote valid for 30 days</div>
-          </div>
-        </div>
-
-        <div class="qm-body">
-          <div class="qm-section-title">Service Quote</div>
-          <div class="qm-badges">
-            <span class="qm-badge bike">${getIcon(selectedBike)} ${selectedBike}</span>
-            <span class="qm-badge type">🚐 Mobile Service</span>
-          </div>
-
-          <table class="qm-table">
-            <thead>
-              <tr>
-                <th>Service / Task</th>
-                <th>Parts</th>
-                <th>Labor</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${serviceRows}
-            </tbody>
-          </table>
-
-          <div class="qm-totals">
-            <div class="qm-total-row">
-              <span>Labor Subtotal</span>
-              <span>$${laborSum.toFixed(2)}</span>
-            </div>
-            <div class="qm-total-row">
-              <span>Mobile Service Charge</span>
-              <span>$${mobileFee.toFixed(2)}</span>
-            </div>
-            ${hasSourceQuote?`<div class="qm-total-row parts-note">
-              <span>Parts</span>
-              <span>Quoted separately</span>
-            </div>`:''}
-            ${partsSupplyText?`<div class="qm-total-row">
-              <span>Parts Supply</span>
-              <span>${partsSupplyText}</span>
-            </div>`:''}
-            ${bikeMakeModel?`<div class="qm-total-row" style="flex-direction:column; align-items:flex-start; gap:4px;">
-              <span>Bike</span>
-              <span style="word-break:break-word; opacity:0.8;">${bikeMakeModel}</span>
-            </div>`:''}
-            ${bikePhotoDataUrl?`<div class="qm-row" style="padding:8px 0; border-bottom:1px solid #eee;">
-              <div style="font-size:0.8rem;opacity:0.8;margin-bottom:4px;">Bike Photo</div>
-              <img src="${bikePhotoDataUrl}" alt="Bike photo" style="max-width:100%;max-height:180px;border-radius:6px;object-fit:contain;">
-            </div>`:''}
-            <div class="qm-total-row grand">
-              <span>Total Labor Estimate</span>
-              <span>$${grand.toFixed(2)}</span>
-            </div>
-          </div>
-
-          ${hasSourceQuote?`<div class="qm-disclaimer">
-            ⚠ Parts or additional accessories/service may incur fees not factored on this estimate. Final cost will be confirmed at time of appointment or if discussed prior to arrival..
-          </div>`:''}
-
-          <div class="qm-disclaimer">
-            ⚠ This is an estimate based on information provided by the requestor. This information is assumed accurate and can be relied on until verification is made by Borderline Bikes or one of our technicians. Occasionally, prices need to be modified if original details or scope of work changes.
-          </div>
-        </div>
-
-        <div class="qm-actions no-print">
-          <button class="qm-btn primary" onclick="printQuote()">🖨 Print / Save as PDF</button>
-          <button class="qm-btn secondary" onclick="showSendOptions('${quoteNum}',${grand})">📤 Send Copy</button>
-          <button class="qm-btn ghost" onclick="closeModal()">✕ Close</button>
-        </div>
-      </div>
-    </div>`;
-
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
-  setTimeout(()=>document.getElementById('quoteModal').classList.add('visible'),10);
-}
-
-function closeModal() {
-  const m = document.getElementById('quoteModal');
-  if(m){ m.classList.remove('visible'); setTimeout(()=>m.remove(),300); }
-}
-function closeModalOutside(e) {
-  if(e.target.id==='quoteModal') closeModal();
-}
-function printQuote() {
-  window.print();
-}
-function copyQuote(num, grand) {
-  const lines = [
-    `BORDERLINE BIKE SERVICE — QUOTE ${num}`,
-    `Bike Type: ${selectedBike}`,
-    `Service: ${serviceType==='mobile'?'Mobile (+$50)':'In Shop'}`,
-    ``,`Services:`,
-  ];
-  selectedServices.forEach(s=>lines.push(`  • ${s.task} — $${s.labor} labor`));
-  lines.push(``,`Total Labor: $${grand.toFixed(2)}`);
-  navigator.clipboard.writeText(lines.join('\n')).then(()=>{
-    const t=document.getElementById('toast');
-    t.textContent='Quote copied!';
-    t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),2500);
-  });
-}
-
-// ── INIT ─────────────────────────────────────────────────────────────────────
-loadAllData();
-
-// ── SEND COPY ─────────────────────────────────────────────────────────────────
-function showSendOptions(quoteNum, grand) {
-  const bike = selectedBike || '';
-  const services = selectedServices.map(s => `• ${s.task} — $${(s.labor||0).toFixed(2)}`).join('\n');
-  const partsNote = selectedServices.some(s=>s.parts && s.parts!=='N/A') ? '\n⚠ Parts quoted separately.' : '';
-  const partsSupplyEl = document.querySelector('input[name="partsSupply"]:checked');
-  const partsSupplyMap = { customer: 'Customer supplying parts', borderline: 'Borderline Bikes to supply parts', unsure: 'Parts supply TBD' };
-  const partsLine = partsSupplyEl ? `\nParts: ${partsSupplyMap[partsSupplyEl.value]}` : '';
-  const quoteText = `BORDERLINE BIKES — INSTANT QUOTE\nQuote #${quoteNum}\n\nBike: ${bike}\n\nServices:\n${services}${partsNote}${partsLine}\n\nMobile Convenience Fee: $50.00\nTOTAL LABOR: $${grand.toFixed(2)}\n\nPricing shown is for labor only. Replacement parts (if required) are extra.\nAdditional fees not shown. Final price will change when taxes and/or credit card fees are applied.\n\nborderlinebikes.com`;
-  const overlay = document.getElementById('sendOverlay');
-  overlay.dataset.quoteText = quoteText;
-  overlay.style.display = 'flex';
-}
-
-function closeSendOptions() {
-  document.getElementById('sendOverlay').style.display = 'none';
-  document.getElementById('sendInput').value = '';
-  document.getElementById('sendError').textContent = '';
-}
-
-function sendQuote() {
-  const input = document.getElementById('sendInput').value.trim();
-  const overlay = document.getElementById('sendOverlay');
-  const quoteText = overlay.dataset.quoteText;
-  const errEl = document.getElementById('sendError');
-  if (!input) { errEl.textContent = 'Please enter an email or phone number.'; return; }
-  const isEmail = input.includes('@');
-  const isPhone = /^[\d\s\+\-\(\)]{7,}$/.test(input);
-  if (isEmail) {
-    const subject = encodeURIComponent('Your Borderline Bikes Instant Quote');
-    const body = encodeURIComponent(quoteText);
-    window.open(`mailto:${input}?subject=${subject}&body=${body}`, '_blank');
-    closeSendOptions();
-  } else if (isPhone) {
-    const phone = input.replace(/[^\d+]/g,'');
-    const body = encodeURIComponent(quoteText);
-    window.open(`sms:${phone}?body=${body}`, '_blank');
-    closeSendOptions();
-  } else {
-    errEl.textContent = 'Please enter a valid email address or phone number.';
+  function render() {
+    document.querySelectorAll('.bb-step').forEach(s => s.classList.remove('active'));
+    const target = document.querySelector(`.bb-step[data-step="${state.step}"]`);
+    if (target) target.classList.add('active');
+    const pct = (state.step / TOTAL_STEPS) * 100;
+    document.getElementById('bb-progress').style.width = Math.min(pct, 100) + '%';
+    document.getElementById('bb-step-label').textContent = state.step <= TOTAL_STEPS ? `Step ${state.step} of ${TOTAL_STEPS}` : 'Complete';
   }
-}
+
+  // ── VALIDATION ────────────────────────────────────────────────────────────
+  function validateStep() {
+    if (state.step === 1 && !state.bikeType) { shake(document.getElementById('bike-type-grid')); return false; }
+    if (state.step === 2 && state.selectedServices.size === 0) { shake(document.getElementById('bb-services-list')); return false; }
+    if (state.step === 3 && !state.partsSource) { shake(document.getElementById('parts-options')); return false; }
+    if (state.step === 5 && !state.serviceLocation) { shake(document.querySelector('.bb-step[data-step="5"] .bb-radio-stack')); return false; }
+    return true;
+  }
+
+  function shake(el) { el.classList.add('bb-shake'); setTimeout(() => el.classList.remove('bb-shake'), 400); }
+
+  // ── POPULATE SERVICES ─────────────────────────────────────────────────────
+  function populateServices(query) {
+    const list = document.getElementById('bb-services-list');
+
+    // Rebuild flat SERVICES array from current bike's live data
+    SERVICES = allData[state.bikeType] || [];
+
+    if (SERVICES.length === 0) {
+      list.innerHTML = '<div class="bb-no-services">No services found for this bike type.</div>';
+      return;
+    }
+
+    query = (query || '').toLowerCase().trim();
+    const visible = SERVICES.filter(s =>
+      !query || s.task.toLowerCase().includes(query) || s.category.toLowerCase().includes(query)
+    );
+
+    if (visible.length === 0) { list.innerHTML = '<div class="bb-no-services">No services match your search.</div>'; return; }
+
+    const groups = {};
+    visible.forEach(s => { if (!groups[s.category]) groups[s.category] = []; groups[s.category].push(s); });
+
+    let html = '';
+    Object.entries(groups).forEach(([cat, items]) => {
+      html += `<div class="bb-cat-header">${cat}</div>`;
+      items.forEach(s => {
+        const idx = SERVICES.indexOf(s);
+        const isChecked = state.selectedServices.has(idx);
+        html += `<div class="bb-service-item ${isChecked ? 'checked' : ''}" data-idx="${idx}" onclick="bbToggleService(${idx})">
+          <div class="bb-service-checkbox">${isChecked ? '✓' : ''}</div>
+          <div class="bb-service-info">
+            <div class="bb-service-name">${s.task}${s.hasParts ? '<span class="bb-parts-badge">+ Parts</span>' : ''}</div>
+            <div class="bb-service-price">Labor: $${s.labor.toFixed(2)}</div>
+          </div>
+        </div>`;
+      });
+    });
+    list.innerHTML = html;
+  }
+
+  window.bbToggleService = function(idx) {
+    if (state.selectedServices.has(idx)) state.selectedServices.delete(idx);
+    else state.selectedServices.add(idx);
+    const item = document.querySelector(`.bb-service-item[data-idx="${idx}"]`);
+    if (item) { const isChecked = state.selectedServices.has(idx); item.classList.toggle('checked', isChecked); item.querySelector('.bb-service-checkbox').textContent = isChecked ? '✓' : ''; }
+  };
+
+  window.bbFilterServices = function(query) { populateServices(query); };
+
+  // ── QUOTE SUMMARY ─────────────────────────────────────────────────────────
+  function buildQuoteSummary() {
+    let laborTotal = 0; let anyParts = false; let html = '';
+    state.selectedServices.forEach(idx => {
+      const s = SERVICES[idx];
+      if (!s) return;
+      laborTotal += s.labor;
+      if (s.hasParts) anyParts = true;
+      html += `<tr><td>${s.task}</td><td>$${s.labor.toFixed(2)}</td></tr>`;
+    });
+    const isMobile = state.serviceLocation === 'mobile';
+    const mobileRow = document.getElementById('bb-mobile-row');
+    if (isMobile) { laborTotal += MOBILE_CHARGE; mobileRow.style.display = ''; } else { mobileRow.style.display = 'none'; }
+    document.getElementById('bb-quote-rows').innerHTML = html;
+    document.getElementById('bb-grand-total').textContent = '$' + laborTotal.toFixed(2);
+    document.getElementById('bb-parts-note').style.display = anyParts ? '' : 'none';
+    const partsLabel = state.partsSource === 'shop' ? 'Shop sources parts' : 'Customer provides parts';
+    const locationLabel = isMobile ? 'Mobile service' : 'Drop-off at shop';
+    document.getElementById('bb-quote-meta').innerHTML = `<span>🚲 <strong>${state.bikeType}</strong></span><span>🔧 <strong>${partsLabel}</strong></span><span>📍 <strong>${locationLabel}</strong></span>`;
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────────────────────
+  window.bbSubmit = function() {
+    const email = document.getElementById('bb-email').value.trim();
+    if (!email) { shake(document.getElementById('bb-email')); document.getElementById('bb-email').focus(); return; }
+    state.step = 7; render();
+    document.getElementById('bb-ref-num').textContent = 'Reference: BB-' + Date.now().toString(36).toUpperCase();
+  };
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  loadAllData();
+
+})();
 </script>
 </body>
 </html>
