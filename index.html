@@ -634,8 +634,8 @@
          alt="I Hate Bike Shops" class="brand-logo">
   </div>
   <div class="brand">
-    <h1>Instant Quote Builder</h1>
-    <p>Your One Stop Mobile Bike Shop</p>
+    <h1>Instant Quote</h1>
+    <p>The Bike Shop Alternative</p>
   </div>
   <div class="header-right">
     <div class="status-dot"></div>
@@ -682,7 +682,7 @@
   <!-- RIGHT: QUOTE PANEL -->
   <div class="right-panel">
     <div class="quote-title">Your Quote</div>
-    <div class="quote-sub">Mobile service included — final quote may vary for parts</div>
+    <div class="quote-sub">Mobile convenience fee included</div>
 
     <div id="quoteBikeBadge" style="display:none" class="quote-bike-badge">
       <span id="quoteBikeIcon"></span>
@@ -717,7 +717,32 @@
       </div>
 
       <div class="note-banner" id="partsNote" style="display:none">
-        ⚠ Parts marked "source/quote" are priced separately based on availability. Final parts cost will be confirmed before work begins.
+        ⚠ Pricing shown is for labor only. Replacement parts (if required) are extra and should be considered before booking service.
+      <br><br>⚠ Additional fees not shown. Final price will change when taxes and/or credit card fees are applied.
+      </div>
+
+      <div id="partsQuestion" style="display:none; margin:10px 0; padding:12px; background:rgba(232,113,26,0.08); border:1px solid var(--orange); border-radius:8px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; letter-spacing:0.05em; color:var(--orange); margin-bottom:8px;">REPLACEMENT PARTS</div>
+        <div style="font-size:11px; color:#8a8f9e; margin-bottom:10px;">Do you have the replacement parts, or should Borderline Bikes supply them?</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; color:#8a8f9e;"><input type="radio" name="partsSupply" value="customer" style="accent-color:var(--orange);"> I have the parts</label>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; color:#8a8f9e;"><input type="radio" name="partsSupply" value="borderline" style="accent-color:var(--orange);"> Borderline Bikes to supply</label>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; color:#8a8f9e;"><input type="radio" name="partsSupply" value="unsure" style="accent-color:var(--orange);"> Not sure yet</label>
+        </div>
+      </div>
+
+      <div id="bikeDetailsForm" style="display:none; margin:10px 0; padding:12px; background:rgba(232,113,26,0.08); border:1px solid var(--orange); border-radius:8px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; letter-spacing:0.05em; color:var(--orange); margin-bottom:8px;">BIKE DETAILS</div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:11px; color:#8a8f9e; margin-bottom:4px;">Bike make and model (e.g. Trek FX3 2023)</div>
+          <input id="bikeMakeModel" type="text" placeholder="e.g. Trek FX3 2023"
+            style="width:100%; box-sizing:border-box; padding:8px 10px; background:rgba(255,255,255,0.05); border:1px solid rgba(232,113,26,0.3); border-radius:6px; font-size:12px; color:#8a8f9e; outline:none;">
+        </div>
+        <div>
+          <div style="font-size:11px; color:#8a8f9e; margin-bottom:4px;">Upload a photo of your bike (optional)</div>
+          <input id="bikePhoto" type="file" accept="image/*"
+            style="width:100%; box-sizing:border-box; font-size:11px; color:#8a8f9e; cursor:pointer;">
+        </div>
       </div>
 
       <button class="cta-btn" id="ctaBtn" onclick="requestQuote()">Request This Service</button>
@@ -1146,6 +1171,8 @@ function updateQuote() {
   
   
   document.getElementById('partsRow').style.display = hasSourceQuote ? 'flex' : 'none';
+  document.getElementById('partsQuestion').style.display = hasSourceQuote ? 'block' : 'none';
+  document.getElementById('bikeDetailsForm').style.display = hasSourceQuote ? 'block' : 'none';
   document.getElementById('partsNote').style.display = hasSourceQuote ? 'block' : 'none';
 }
 
@@ -1163,16 +1190,34 @@ function removeService(task) {
 
 function clearAll() {
   selectedServices = [];
+  // Also clear bike details fields
+  document.getElementById('bikeMakeModel').value = '';
+  document.getElementById('bikePhoto').value = '';
+  const radios = document.querySelectorAll('input[name="partsSupply"]');
+  radios.forEach(r => r.checked = false);
   buildCategories();
   updateQuote();
 }
 
-function requestQuote() {
+async function requestQuote() {
   const logoSrc = document.querySelector('.brand-logo').src;
   const mobileFee = mobileActive ? 50 : 0;
   const laborSum = selectedServices.reduce((a,s)=>a+(s.labor||0),0);
   const grand = laborSum + mobileFee;
   const hasSourceQuote = selectedServices.some(s=>s.parts && s.parts!=='N/A');
+  const partsSupplyEl = document.querySelector('input[name="partsSupply"]:checked');
+  const bikeMakeModel = document.getElementById('bikeMakeModel').value.trim();
+  const bikePhotoEl = document.getElementById('bikePhoto');
+  const bikePhotoName = bikePhotoEl && bikePhotoEl.files.length > 0 ? bikePhotoEl.files[0].name : null;
+  const bikePhotoDataUrl = await new Promise(resolve => {
+    if (!bikePhotoEl || bikePhotoEl.files.length === 0) { resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(bikePhotoEl.files[0]);
+  });
+  const partsSupplyMap = { customer: 'Customer will supply parts', borderline: 'Borderline Bikes to supply parts', unsure: 'Parts supply TBD' };
+  const partsSupplyText = partsSupplyEl ? partsSupplyMap[partsSupplyEl.value] : null;
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const quoteNum = 'BBS-' + now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + String(Math.floor(Math.random()*9000)+1000);
@@ -1196,6 +1241,18 @@ function requestQuote() {
 
   const modalHTML = `
     <div id="quoteModal" onclick="closeModalOutside(event)">
+  <div id="sendOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1001; align-items:center; justify-content:center;" onclick="event.stopPropagation()">
+    <div style="background:#fff; border-radius:12px; padding:28px; width:90%; max-width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+      <h3 style="font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; letter-spacing:0.05em; margin:0 0 6px; color:#111;">SEND YOUR QUOTE</h3>
+      <p style="font-size:0.85rem; color:#666; margin:0 0 16px;">Enter your email or mobile number and we'll send you a copy.</p>
+      <input id="sendInput" type="text" placeholder="Email address or phone number" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.95rem; margin-bottom:8px; outline:none;" onkeydown="if(event.key==='Enter') sendQuote()">
+      <div id="sendError" style="color:#e8711a; font-size:0.8rem; min-height:18px; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="sendQuote()" style="flex:1; padding:10px; background:#e8711a; color:#fff; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:1rem; letter-spacing:0.05em; cursor:pointer;">SEND</button>
+        <button onclick="closeSendOptions()" style="padding:10px 16px; background:#f0f0f0; color:#333; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:1rem; cursor:pointer;">CANCEL</button>
+      </div>
+    </div>
+  </div>
       <div class="qm-box" id="qmBox">
         <div class="qm-header">
           <div class="qm-logo">
@@ -1246,6 +1303,18 @@ function requestQuote() {
               <span>Parts</span>
               <span>Quoted separately</span>
             </div>`:''}
+            ${partsSupplyText?`<div class="qm-total-row">
+              <span>Parts Supply</span>
+              <span>${partsSupplyText}</span>
+            </div>`:''}
+            ${bikeMakeModel?`<div class="qm-total-row" style="flex-direction:column; align-items:flex-start; gap:4px;">
+              <span>Bike</span>
+              <span style="word-break:break-word; opacity:0.8;">${bikeMakeModel}</span>
+            </div>`:''}
+            ${bikePhotoDataUrl?`<div class="qm-row" style="padding:8px 0; border-bottom:1px solid #eee;">
+              <div style="font-size:0.8rem;opacity:0.8;margin-bottom:4px;">Bike Photo</div>
+              <img src="${bikePhotoDataUrl}" alt="Bike photo" style="max-width:100%;max-height:180px;border-radius:6px;object-fit:contain;">
+            </div>`:''}
             <div class="qm-total-row grand">
               <span>Total Labor Estimate</span>
               <span>$${grand.toFixed(2)}</span>
@@ -1263,7 +1332,7 @@ function requestQuote() {
 
         <div class="qm-actions no-print">
           <button class="qm-btn primary" onclick="printQuote()">🖨 Print / Save as PDF</button>
-          <button class="qm-btn secondary" onclick="copyQuote('${quoteNum}',${grand})">📋 Copy to Clipboard</button>
+          <button class="qm-btn secondary" onclick="showSendOptions('${quoteNum}',${grand})">📤 Send Copy</button>
           <button class="qm-btn ghost" onclick="closeModal()">✕ Close</button>
         </div>
       </div>
@@ -1302,6 +1371,49 @@ function copyQuote(num, grand) {
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 loadAllData();
+
+// ── SEND COPY ─────────────────────────────────────────────────────────────────
+function showSendOptions(quoteNum, grand) {
+  const bike = selectedBike || '';
+  const services = selectedServices.map(s => `• ${s.task} — $${(s.labor||0).toFixed(2)}`).join('\n');
+  const partsNote = selectedServices.some(s=>s.parts && s.parts!=='N/A') ? '\n⚠ Parts quoted separately.' : '';
+  const partsSupplyEl = document.querySelector('input[name="partsSupply"]:checked');
+  const partsSupplyMap = { customer: 'Customer supplying parts', borderline: 'Borderline Bikes to supply parts', unsure: 'Parts supply TBD' };
+  const partsLine = partsSupplyEl ? `\nParts: ${partsSupplyMap[partsSupplyEl.value]}` : '';
+  const quoteText = `BORDERLINE BIKES — INSTANT QUOTE\nQuote #${quoteNum}\n\nBike: ${bike}\n\nServices:\n${services}${partsNote}${partsLine}\n\nMobile Convenience Fee: $50.00\nTOTAL LABOR: $${grand.toFixed(2)}\n\nPricing shown is for labor only. Replacement parts (if required) are extra.\nAdditional fees not shown. Final price will change when taxes and/or credit card fees are applied.\n\nborderlinebikes.com`;
+  const overlay = document.getElementById('sendOverlay');
+  overlay.dataset.quoteText = quoteText;
+  overlay.style.display = 'flex';
+}
+
+function closeSendOptions() {
+  document.getElementById('sendOverlay').style.display = 'none';
+  document.getElementById('sendInput').value = '';
+  document.getElementById('sendError').textContent = '';
+}
+
+function sendQuote() {
+  const input = document.getElementById('sendInput').value.trim();
+  const overlay = document.getElementById('sendOverlay');
+  const quoteText = overlay.dataset.quoteText;
+  const errEl = document.getElementById('sendError');
+  if (!input) { errEl.textContent = 'Please enter an email or phone number.'; return; }
+  const isEmail = input.includes('@');
+  const isPhone = /^[\d\s\+\-\(\)]{7,}$/.test(input);
+  if (isEmail) {
+    const subject = encodeURIComponent('Your Borderline Bikes Instant Quote');
+    const body = encodeURIComponent(quoteText);
+    window.open(`mailto:${input}?subject=${subject}&body=${body}`, '_blank');
+    closeSendOptions();
+  } else if (isPhone) {
+    const phone = input.replace(/[^\d+]/g,'');
+    const body = encodeURIComponent(quoteText);
+    window.open(`sms:${phone}?body=${body}`, '_blank');
+    closeSendOptions();
+  } else {
+    errEl.textContent = 'Please enter a valid email address or phone number.';
+  }
+}
 </script>
 </body>
 </html>
