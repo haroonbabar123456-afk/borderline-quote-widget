@@ -1321,8 +1321,12 @@ async function requestQuote() {
             </div>
           </div>
 
+          ${hasSourceQuote?`<div class="qm-disclaimer">
+            ⚠ Parts or additional accessories/service may incur fees not factored on this estimate. Final cost will be confirmed at time of appointment or if discussed prior to arrival..
+          </div>`:''}
+
           <div class="qm-disclaimer">
-            ⚠ Parts or additional accessories/service may incur fees not factored on this estimate. Final cost will be confirmed at time of appointment or if discussed prior to arrival.
+            TThis is an estimate based on information provided by the requestor. This information is assumed accurate and can be relied on until verification is made by Borderline Bikes or one of our technicians. Occasionally, prices need to be modified if original details or scope of work changes.
           </div>
         </div>
 
