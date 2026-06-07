@@ -107,16 +107,14 @@
 
   /* ── HEADER ── */
   header {
-    background: var(--dark);
-    border-bottom: 2px solid var(--orange);
-    padding: 20px 40px;
+    background: transparent;
+    border: none;
+    padding: 20px 40px 8px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
   }
+  .logo-wrap { display: none !important; }
+  .header-right { display: none !important; }
   .logo-wrap {
     flex-shrink: 0;
     display: flex; align-items: center;
@@ -134,7 +132,7 @@
   .status-text { font-size:11px; color:var(--muted); letter-spacing:1px; }
 
   /* ── MAIN LAYOUT ── */
-  .layout { display:grid; grid-template-columns:1fr 340px; gap:0; min-height:calc(100vh - 70px); }
+  .layout { display:grid; grid-template-columns:1fr 340px; gap:0; height:calc(100vh - 80px); max-height:calc(100vh - 80px); overflow:hidden; }
 
   /* ── LEFT PANEL ── */
   .left-panel { padding:32px 40px; border-right:1px solid var(--border); overflow-y:auto; }
@@ -260,8 +258,8 @@
     background:var(--dark);
     padding:32px 28px;
     position:sticky;
-    top:70px;
-    height:calc(100vh - 70px);
+    top:0;
+    height:calc(100vh - 80px);
     overflow-y:auto;
     display:flex;
     flex-direction:column;
@@ -501,11 +499,9 @@
   .left-panel { background: #ffffff !important; }
   .right-panel { background: #fafafa !important; border-left: 1px solid #e0e0e0 !important; }
 
-  /* Header — keep orange */
-  header { background: #e8711a !important; border-bottom: 2px solid #c05c10 !important; }
-  .brand h1 { color: #ffffff !important; }
-  .brand p { color: rgba(255,255,255,0.8) !important; }
-  .status-text { color: rgba(255,255,255,0.8) !important; }
+  header { background: transparent !important; border: none !important; }
+  .brand h1 { color: #111111 !important; }
+  .brand p { color: #666666 !important; }
 
   /* Step numbers */
   .step-num { background: #e8711a !important; color: #fff !important; }
